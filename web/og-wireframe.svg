@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Cabinet Chaos Episodes wireframe">
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <rect x="0" y="0" width="1200" height="90" fill="#000000"/>
+  <rect x="30" y="28" width="320" height="36" fill="none" stroke="#ffffff" stroke-width="3"/>
+  <line x1="380" y1="45" x2="1160" y2="45" stroke="#ffffff" stroke-width="3"/>
+
+  <rect x="40" y="120" width="320" height="450" fill="none" stroke="#000000" stroke-width="4"/>
+  <line x1="60" y1="170" x2="340" y2="170" stroke="#000000" stroke-width="3"/>
+  <line x1="60" y1="215" x2="340" y2="215" stroke="#000000" stroke-width="3"/>
+  <line x1="60" y1="260" x2="340" y2="260" stroke="#000000" stroke-width="3"/>
+  <line x1="60" y1="305" x2="340" y2="305" stroke="#000000" stroke-width="3"/>
+  <line x1="60" y1="350" x2="340" y2="350" stroke="#000000" stroke-width="3"/>
+  <line x1="60" y1="395" x2="340" y2="395" stroke="#000000" stroke-width="3"/>
+
+  <rect x="390" y="120" width="770" height="450" fill="none" stroke="#000000" stroke-width="4"/>
+  <line x1="420" y1="170" x2="1125" y2="170" stroke="#000000" stroke-width="4"/>
+  <line x1="420" y1="220" x2="1080" y2="220" stroke="#000000" stroke-width="3"/>
+  <line x1="420" y1="265" x2="1105" y2="265" stroke="#000000" stroke-width="3"/>
+  <line x1="420" y1="320" x2="950" y2="320" stroke="#000000" stroke-width="3"/>
+  <line x1="420" y1="365" x2="1120" y2="365" stroke="#000000" stroke-width="3"/>
+  <line x1="420" y1="410" x2="1030" y2="410" stroke="#000000" stroke-width="3"/>
+  <line x1="420" y1="455" x2="1120" y2="455" stroke="#000000" stroke-width="3"/>
+
+  <text x="40" y="605" font-family="Arial, sans-serif" font-size="36" fill="#000000" font-weight="700">CABINET CHAOS EPISODES</text>
+</svg>

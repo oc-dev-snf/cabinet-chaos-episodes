@@ -74,6 +74,7 @@ Then:
 2. Paste/write the full transcript text (remove all `TODO` markers).
 3. Push changes.
 4. Automation marks the PR `ready-for-review` and attempts squash merge when merge conditions are met.
+5. On successful merge, automation closes the linked issue automatically (for branches named `issueops/episode-<issueNumber>`).
 
 Optional: set repo variable `ISSUEOPS_REVIEWER_LOGIN` to your bot/reviewer username. When a PR review is requested for that user, the review/merge workflow triggers from that event too.
 

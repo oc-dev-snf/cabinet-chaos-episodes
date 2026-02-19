@@ -15,7 +15,8 @@ Weekly original political satire episode transcripts.
 - `web/` → GitHub Pages frontend (renders markdown)
 - `.github/workflows/deploy-pages.yml` → deploys Pages on push to `main`
 - `.github/workflows/issueops-auto-label.yml` → auto-labels issue-form requests
-- `.github/workflows/issueops-episode-skeleton.yml` → creates episode skeleton PRs from labeled issues
+- `.github/workflows/issueops-episode-skeleton.yml` → creates draft skeleton PRs from labeled issues
+- `.github/workflows/issueops-pr-review-merge.yml` → watches IssueOps PRs, marks ready when TODOs are removed, and attempts squash merge
 
 ---
 
@@ -66,12 +67,13 @@ Weekly original political satire episode transcripts.
 Use **Issues → New issue → “Episode request”**.
 
 Issue forms are auto-labeled `episode-request`.
-When that label is present, automation creates a skeleton episode PR.
+When that label is present, automation creates a **draft** skeleton episode PR.
 
 Then:
 1. Open the generated PR branch.
-2. Paste/write the full transcript text.
-3. Merge.
+2. Paste/write the full transcript text (remove all `TODO` markers).
+3. Push changes.
+4. Automation marks the PR `ready-for-review` and attempts squash merge when merge conditions are met.
 
 ---
 

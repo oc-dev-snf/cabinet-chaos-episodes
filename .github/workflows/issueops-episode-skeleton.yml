@@ -96,8 +96,10 @@ jobs:
           body: |
             Auto-generated episode skeleton from issue #${{ github.event.issue.number }}.
 
-            Fill in transcript content and merge.
-          labels: episode-request
+            Fill in transcript content and push updates to this branch.
+            Automation will mark ready-for-review and merge once TODO placeholders are removed.
+          labels: episode-request,episode-draft
+          draft: true
 
       - name: Comment fallback when PR creation is blocked
         if: steps.cpr.outcome == 'failure'

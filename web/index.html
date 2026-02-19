@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cabinet Chaos Episodes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  </head>
+  <body>
+    <div class="bg"></div>
+    <header>
+      <h1>Cabinet Chaos Episodes</h1>
+      <p>Weekly original political satire transcripts.</p>
+    </header>
+
+    <main>
+      <aside>
+        <h2>Episodes</h2>
+        <div id="episodes" class="episodes"></div>
+      </aside>
+
+      <article>
+        <div id="status" class="status">Loading episode list…</div>
+        <div id="content" class="markdown"></div>
+      </article>
+    </main>
+
+    <footer>
+      Built with rage, tea, and GitHub Pages.
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

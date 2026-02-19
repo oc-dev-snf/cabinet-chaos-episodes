@@ -2,7 +2,7 @@ name: IssueOps review/merge episode PRs
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    types: [opened, synchronize, reopened, ready_for_review, review_requested]
 
 permissions:
   contents: write
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   review-and-merge:
-    if: ${{ startsWith(github.head_ref, 'issueops/episode-') }}
+    if: ${{ startsWith(github.head_ref, 'issueops/episode-') && (github.event.action != 'review_requested' || github.event.requested_reviewer.login == (vars.ISSUEOPS_REVIEWER_LOGIN || 'oc-dev-snf')) }}
     runs-on: ubuntu-latest
 
     steps:

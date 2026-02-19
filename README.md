@@ -16,7 +16,7 @@ Weekly original political satire episode transcripts.
 - `.github/workflows/deploy-pages.yml` → deploys Pages on push to `main`
 - `.github/workflows/issueops-auto-label.yml` → auto-labels issue-form requests
 - `.github/workflows/issueops-episode-skeleton.yml` → creates draft skeleton PRs from labeled issues
-- `.github/workflows/issueops-pr-review-merge.yml` → watches IssueOps PRs, marks ready when TODOs are removed, and attempts squash merge
+- `.github/workflows/issueops-pr-review-merge.yml` → watches IssueOps PRs, marks ready when TODOs are removed, and attempts squash merge (also supports review-request trigger for the configured reviewer login)
 
 ---
 
@@ -74,6 +74,8 @@ Then:
 2. Paste/write the full transcript text (remove all `TODO` markers).
 3. Push changes.
 4. Automation marks the PR `ready-for-review` and attempts squash merge when merge conditions are met.
+
+Optional: set repo variable `ISSUEOPS_REVIEWER_LOGIN` to your bot/reviewer username. When a PR review is requested for that user, the review/merge workflow triggers from that event too.
 
 ---
 

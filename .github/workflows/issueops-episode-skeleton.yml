@@ -2,7 +2,7 @@ name: IssueOps episode skeleton PR
 
 on:
   issues:
-    types: [labeled]
+    types: [opened, labeled, edited, reopened]
 
 permissions:
   contents: write
@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   create-skeleton:
-    if: ${{ github.event.label.name == 'episode-request' }}
+    if: ${{ contains(github.event.issue.labels.*.name, 'episode-request') }}
     runs-on: ubuntu-latest
 
     steps:

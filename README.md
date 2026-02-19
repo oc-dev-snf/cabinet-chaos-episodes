@@ -1,6 +1,10 @@
 # Cabinet Chaos Episodes
 
+[![Deploy snazzy pages](https://github.com/oc-dev-snf/cabinet-chaos-episodes/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/oc-dev-snf/cabinet-chaos-episodes/actions/workflows/deploy-pages.yml)
+
 Weekly original political satire episode transcripts.
+
+**Read online:** https://oc-dev-snf.github.io/cabinet-chaos-episodes/
 
 ## Format
 

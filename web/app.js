@@ -44,7 +44,17 @@ async function fetchEpisodes() {
   const files = await res.json();
   return files
     .filter((f) => f.type === 'file' && f.name.endsWith('.md'))
-    .sort((a, b) => b.name.localeCompare(a.name));
+    .sort((a, b) => {
+      const getEpisodeNumber = (name) => {
+        const m = name.match(/^\d{4}-\d{2}-\d{2}-episode-(\d+)-/i);
+        return m ? Number.parseInt(m[1], 10) : -1;
+      };
+
+      const epDiff = getEpisodeNumber(b.name) - getEpisodeNumber(a.name);
+      if (epDiff !== 0) return epDiff;
+
+      return b.name.localeCompare(a.name);
+    });
 }
 
 async function openEpisode(file, btn) {

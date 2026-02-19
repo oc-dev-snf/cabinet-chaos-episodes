@@ -7,7 +7,7 @@ const statusEl = document.getElementById('status');
 
 async function fetchEpisodes() {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/episodes`;
-  const res = await fetch(url);
+  const res = await fetch(url, { cache: 'no-store' });
   if (!res.ok) throw new Error(`GitHub API ${res.status}`);
   const files = await res.json();
   return files
@@ -20,7 +20,8 @@ async function openEpisode(file, btn) {
   if (btn) btn.classList.add('active');
   statusEl.textContent = `Loading ${file.name}…`;
 
-  const res = await fetch(file.download_url);
+  const bust = `${file.download_url}?t=${Date.now()}`;
+  const res = await fetch(bust, { cache: 'no-store' });
   const md = await res.text();
   const html = marked.parse(md, { mangle: false, headerIds: false });
   contentEl.innerHTML = DOMPurify.sanitize(html);

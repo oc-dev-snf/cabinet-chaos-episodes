@@ -47,6 +47,11 @@ header {
   align-items: center;
   gap: .75rem;
 }
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+}
 .badge {
   display: inline-block;
   font-size: .72rem;
@@ -153,6 +158,21 @@ aside h2 {
 }
 .markdown a { color: #7ebeff; }
 [data-theme='light'] .markdown a { color: var(--gov-blue-dark); }
+
+.foi-redacted {
+  background: #0b0c0c;
+  color: transparent;
+  border-radius: 2px;
+  padding: 0 .12rem;
+  transition: color .12s ease, background .12s ease;
+}
+.foi-redacted:hover {
+  color: var(--ink);
+  background: color-mix(in srgb, #0b0c0c 65%, transparent);
+}
+[data-theme='light'] .foi-redacted:hover {
+  color: #0b0c0c;
+}
 footer {
   width: min(1200px, 94vw);
   margin: 0 auto;

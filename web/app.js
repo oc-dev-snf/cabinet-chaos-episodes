@@ -5,6 +5,10 @@ const episodesEl = document.getElementById('episodes');
 const contentEl = document.getElementById('content');
 const statusEl = document.getElementById('status');
 const themeToggleEl = document.getElementById('theme-toggle');
+const foiToggleEl = document.getElementById('foi-toggle');
+
+let currentMarkdown = '';
+let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -21,6 +25,47 @@ themeToggleEl?.addEventListener('click', () => {
   const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   applyTheme(next);
 });
+
+function applyFoiMode(enabled) {
+  foiModeEnabled = enabled;
+  localStorage.setItem('cabinetChaos.foiMode', enabled ? 'on' : 'off');
+  if (foiToggleEl) {
+    foiToggleEl.textContent = `FOI mode: ${enabled ? 'On' : 'Off'}`;
+  }
+}
+
+applyFoiMode(foiModeEnabled);
+
+foiToggleEl?.addEventListener('click', () => {
+  applyFoiMode(!foiModeEnabled);
+  if (currentMarkdown) renderMarkdown(currentMarkdown);
+});
+
+function addFoiRedactions() {
+  if (!foiModeEnabled) return;
+
+  const targets = contentEl.querySelectorAll('p.line .dialogue, p:not(.line), li');
+  targets.forEach((el) => {
+    if (el.querySelector('code, pre, a')) return;
+
+    const text = (el.textContent || '').trim();
+    if (!text || text.length < 40) return;
+
+    const words = text.split(/\s+/);
+    if (words.length < 10) return;
+
+    const redactions = Math.max(1, Math.floor(words.length / 18));
+    for (let i = 0; i < redactions; i++) {
+      const start = 1 + Math.floor(Math.random() * Math.max(1, words.length - 6));
+      const spanLen = 2 + Math.floor(Math.random() * 4);
+      for (let j = start; j < Math.min(words.length, start + spanLen); j++) {
+        words[j] = `<span class="foi-redacted" title="Hover to reveal">${words[j]}</span>`;
+      }
+    }
+
+    el.innerHTML = words.join(' ');
+  });
+}
 
 function prettifyEpisodeName(filename) {
   const raw = filename.replace(/\.md$/, '');
@@ -57,14 +102,7 @@ async function fetchEpisodes() {
     });
 }
 
-async function openEpisode(file, btn) {
-  document.querySelectorAll('.episode-btn').forEach((b) => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  statusEl.textContent = `Loading ${prettifyEpisodeName(file.name)}…`;
-
-  const bust = `${file.download_url}?t=${Date.now()}`;
-  const res = await fetch(bust, { cache: 'no-store' });
-  const md = await res.text();
+function renderMarkdown(md) {
   const html = marked.parse(md, { mangle: false, headerIds: false });
   contentEl.innerHTML = DOMPurify.sanitize(html);
 
@@ -87,6 +125,19 @@ async function openEpisode(file, btn) {
     }
     p.appendChild(dialogue);
   });
+
+  addFoiRedactions();
+}
+
+async function openEpisode(file, btn) {
+  document.querySelectorAll('.episode-btn').forEach((b) => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  statusEl.textContent = `Loading ${prettifyEpisodeName(file.name)}…`;
+
+  const bust = `${file.download_url}?t=${Date.now()}`;
+  const res = await fetch(bust, { cache: 'no-store' });
+  currentMarkdown = await res.text();
+  renderMarkdown(currentMarkdown);
 
   statusEl.textContent = prettifyEpisodeName(file.name);
 }

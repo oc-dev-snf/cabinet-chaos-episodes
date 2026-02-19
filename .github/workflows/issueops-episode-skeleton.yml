@@ -1,0 +1,117 @@
+name: IssueOps episode skeleton PR
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  create-skeleton:
+    if: ${{ github.event.label.name == 'episode-request' }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse issue body and create skeleton file
+        env:
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+
+          body = os.environ.get('ISSUE_BODY', '')
+
+          def find(label):
+              m = re.search(rf"### {re.escape(label)}\n\n(.+?)(?:\n### |\Z)", body, re.S)
+              return (m.group(1).strip() if m else '').strip()
+
+          date = find('Episode date (YYYY-MM-DD)') or 'YYYY-MM-DD'
+          number = find('Episode number (e.g. 004)') or 'XXX'
+          slug = find('Episode slug (kebab-case)') or 'episode-slug'
+          premise = find('Premise')
+          beats = find('Key beats')
+
+          filename = f"episodes/{date}-episode-{number}-{slug}.md"
+          os.makedirs('episodes', exist_ok=True)
+
+          lines = [
+              '# THE THICK OF ITCH',
+              '',
+              f'**Episode:** {number}  ',
+              f"**Title:** {slug.replace('-', ' ').title()}  ",
+              '**Genre:** Original political satire',
+              '',
+              '---',
+              '',
+              '## Premise',
+              premise or 'TODO',
+              '',
+              '## COLD OPEN',
+              'TODO',
+              '',
+              '## ACT ONE',
+              'TODO',
+              '',
+              '## ACT TWO',
+              'TODO',
+              '',
+              '## ACT THREE',
+              'TODO',
+              '',
+              '## CLIMAX',
+              'TODO',
+              '',
+              '## TAG',
+              'TODO',
+              '',
+              '---',
+              '',
+              '## Requested beats',
+              beats or '- TODO',
+              ''
+          ]
+
+          with open(filename, 'w', encoding='utf-8') as f:
+              f.write('\n'.join(lines))
+
+          print('Created', filename)
+          PY
+
+      - name: Create Pull Request
+        id: cpr
+        continue-on-error: true
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.ISSUEOPS_PR_TOKEN != '' && secrets.ISSUEOPS_PR_TOKEN || github.token }}
+          branch: issueops/episode-${{ github.event.issue.number }}
+          commit-message: "chore(episodes): scaffold episode from issue #${{ github.event.issue.number }}"
+          title: "Scaffold episode from issue #${{ github.event.issue.number }}"
+          body: |
+            Auto-generated episode skeleton from issue #${{ github.event.issue.number }}.
+
+            Fill in transcript content and merge.
+          labels: episode-request
+
+      - name: Comment fallback when PR creation is blocked
+        if: steps.cpr.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue_number = context.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const branch = `issueops/episode-${issue_number}`;
+            const compareUrl = `https://github.com/${owner}/${repo}/compare/main...${branch}?expand=1`;
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number,
+              body: `I generated the episode scaffold branch, but this repo currently blocks Actions from creating PRs automatically.\n\nOpen PR manually here: ${compareUrl}`
+            });

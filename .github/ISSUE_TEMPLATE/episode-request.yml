@@ -1,0 +1,46 @@
+name: Episode request
+description: Queue a new weekly episode prompt/brief
+title: "Episode request: "
+labels: ["episode-request"]
+body:
+  - type: input
+    id: episode_date
+    attributes:
+      label: Episode date (YYYY-MM-DD)
+      placeholder: "2026-03-12"
+    validations:
+      required: true
+
+  - type: input
+    id: episode_number
+    attributes:
+      label: Episode number (e.g. 004)
+      placeholder: "004"
+    validations:
+      required: true
+
+  - type: input
+    id: slug
+    attributes:
+      label: Episode slug (kebab-case)
+      placeholder: "minister-forgets-mic-is-on"
+    validations:
+      required: true
+
+  - type: textarea
+    id: premise
+    attributes:
+      label: Premise
+      description: One paragraph summary of the episode setup
+      placeholder: "A leaked voice note turns routine budget comms into a full-day meltdown..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: beats
+    attributes:
+      label: Key beats
+      description: Bulleted list of key scenes/moments you want included
+      placeholder: "- Cold open in car\n- Committee ambush\n- Press room collapse"
+    validations:
+      required: false

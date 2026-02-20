@@ -280,13 +280,19 @@ function addFoiRedactions() {
     const words = text.split(/\s+/);
     if (words.length < 10) return;
 
-    const densityDivisor = Math.max(7, 18 - chaosLevel);
-    const redactions = Math.max(1, Math.floor(words.length / densityDivisor));
-    for (let i = 0; i < redactions; i++) {
-      const start = 1 + Math.floor(Math.random() * Math.max(1, words.length - 6));
-      const spanLen = 2 + Math.floor(Math.random() * 4);
-      for (let j = start; j < Math.min(words.length, start + spanLen); j++) {
+    if (chaosLevel >= 11) {
+      for (let j = 0; j < words.length; j++) {
         words[j] = `<span class="foi-redacted" title="Hover to reveal">${words[j]}</span>`;
+      }
+    } else {
+      const densityDivisor = Math.max(7, 18 - chaosLevel);
+      const redactions = Math.max(1, Math.floor(words.length / densityDivisor));
+      for (let i = 0; i < redactions; i++) {
+        const start = 1 + Math.floor(Math.random() * Math.max(1, words.length - 6));
+        const spanLen = 2 + Math.floor(Math.random() * 4);
+        for (let j = start; j < Math.min(words.length, start + spanLen); j++) {
+          words[j] = `<span class="foi-redacted" title="Hover to reveal">${words[j]}</span>`;
+        }
       }
     }
 

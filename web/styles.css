@@ -151,9 +151,13 @@ aside h2 {
   font-size: .9rem;
 }
 .trouble-meter-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 12;
   padding: .55rem 1rem;
   border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--panel) 88%, #000 12%);
+  background: color-mix(in srgb, var(--panel) 93%, #000 7%);
+  backdrop-filter: blur(2px);
 }
 .trouble-meter-label {
   font-size: .72rem;

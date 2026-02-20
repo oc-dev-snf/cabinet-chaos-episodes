@@ -320,14 +320,14 @@ function addFoiRedactions() {
       return;
     }
 
-    if (words.length < 3) return;
+    if (words.length < 8) return;
 
-    const densityDivisor = Math.max(4, 14 - chaosLevel);
-    const redactions = Math.max(1, Math.ceil(words.length / densityDivisor));
+    const densityDivisor = Math.max(7, 18 - chaosLevel);
+    const redactions = Math.max(1, Math.floor(words.length / densityDivisor));
 
     for (let i = 0; i < redactions; i++) {
-      const start = Math.floor(Math.random() * Math.max(1, words.length - 2));
-      const spanLen = 1 + Math.floor(Math.random() * 3);
+      const start = Math.floor(Math.random() * Math.max(1, words.length - 4));
+      const spanLen = 2 + Math.floor(Math.random() * 4);
       for (let j = start; j < Math.min(words.length, start + spanLen); j++) {
         words[j] = wrapWord(words[j]);
       }

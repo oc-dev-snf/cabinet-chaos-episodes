@@ -86,6 +86,31 @@ function addFoiRedactions() {
   });
 }
 
+function addDeniedStamps() {
+  const candidates = Array.from(contentEl.querySelectorAll('.markdown p, .markdown li'))
+    .filter((el) => {
+      if (el.querySelector('h1, h2, h3, code, pre')) return false;
+      const text = (el.textContent || '').trim();
+      return text.length > 90;
+    });
+
+  if (!candidates.length) return;
+
+  const stampCount = Math.max(1, Math.floor(candidates.length / 10));
+  const labels = ['Denied by Spokesperson', 'Officially Disputed', 'Under Review'];
+
+  for (let i = 0; i < stampCount; i++) {
+    const idx = Math.floor(Math.random() * candidates.length);
+    const el = candidates.splice(idx, 1)[0];
+    if (!el) continue;
+
+    const stamp = document.createElement('span');
+    stamp.className = 'denied-stamp';
+    stamp.textContent = labels[Math.floor(Math.random() * labels.length)];
+    el.appendChild(stamp);
+  }
+}
+
 function prettifyEpisodeName(filename) {
   const raw = filename.replace(/\.md$/, '');
   const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})-episode-(\d+)-(.*)$/i);
@@ -146,6 +171,7 @@ function renderMarkdown(md) {
   });
 
   addFoiRedactions();
+  addDeniedStamps();
 }
 
 async function openEpisode(file, btn) {

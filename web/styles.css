@@ -152,7 +152,7 @@ aside h2 {
   border-bottom: 2px solid color-mix(in srgb, var(--line) 80%, #fff 20%);
   padding-bottom: .2rem;
 }
-.markdown p { margin: .7rem 0; }
+.markdown p { margin: .7rem 0; position: relative; }
 .markdown p > strong:first-child {
   display: inline-block;
   background: var(--speaker-bg);
@@ -192,6 +192,29 @@ aside h2 {
 [data-theme='light'] .foi-redacted:hover {
   color: #0b0c0c;
 }
+
+.denied-stamp {
+  position: absolute;
+  right: .25rem;
+  top: .1rem;
+  border: 2px solid rgba(255, 80, 80, .8);
+  color: rgba(255, 120, 120, .95);
+  font-weight: 800;
+  font-size: .62rem;
+  letter-spacing: .08em;
+  padding: .1rem .22rem;
+  transform: rotate(-8deg);
+  text-transform: uppercase;
+  pointer-events: none;
+  opacity: .78;
+  background: color-mix(in srgb, #450000 45%, transparent);
+}
+[data-theme='light'] .denied-stamp {
+  color: #8f0000;
+  border-color: rgba(143, 0, 0, .75);
+  background: rgba(255, 222, 222, .75);
+}
+
 footer {
   width: min(1200px, 94vw);
   margin: 0 auto;

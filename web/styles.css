@@ -151,11 +151,22 @@ aside h2 {
   display: block;
   width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  padding: .55rem .75rem;
+  padding: .55rem 0;
   font-weight: 700;
   letter-spacing: .02em;
+}
+.panic-ticker-text {
+  display: inline-block;
+  padding: 0 .75rem;
+  will-change: transform;
+}
+.panic-ticker-text.run {
+  animation: panicTickerRun var(--panic-duration, 14s) linear 1;
+}
+@keyframes panicTickerRun {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-110%); }
 }
 .markdown {
   padding: 1rem 1.2rem;

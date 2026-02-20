@@ -7,6 +7,7 @@ const statusEl = document.getElementById('status');
 const themeToggleEl = document.getElementById('theme-toggle');
 const foiToggleEl = document.getElementById('foi-toggle');
 const panicTickerEl = document.getElementById('panic-ticker');
+const panicTickerTextEl = document.getElementById('panic-ticker-text');
 
 let currentMarkdown = '';
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
@@ -128,15 +129,23 @@ const panicTrumpStyleQuotes = [
 ];
 
 function rotatePanicTicker() {
-  if (!panicTickerEl) return;
+  if (!panicTickerEl || !panicTickerTextEl) return;
   const useTrumpStyle = Math.random() < 0.14;
   const pool = useTrumpStyle ? panicTrumpStyleQuotes : panicTickerMessages;
-  const msg = pool[Math.floor(Math.random() * pool.length)];
-  panicTickerEl.textContent = `PANIC TICKER • ${msg}`;
+  const msg = `PANIC TICKER • ${pool[Math.floor(Math.random() * pool.length)]}`;
+
+  panicTickerTextEl.textContent = msg;
+
+  const duration = Math.min(26, Math.max(11, Math.ceil(msg.length / 6)));
+  panicTickerEl.style.setProperty('--panic-duration', `${duration}s`);
+
+  panicTickerTextEl.classList.remove('run');
+  void panicTickerTextEl.offsetWidth;
+  panicTickerTextEl.classList.add('run');
 }
 
+panicTickerTextEl?.addEventListener('animationend', rotatePanicTicker);
 rotatePanicTicker();
-setInterval(rotatePanicTicker, 9000);
 
 function addFoiRedactions() {
   if (!foiModeEnabled) return;

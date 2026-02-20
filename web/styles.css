@@ -242,7 +242,32 @@ footer {
 }
 
 @media (max-width: 640px) {
-  .masthead-inner { padding: .8rem 0 .9rem; }
+  .masthead-inner,
+  main,
+  footer {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .masthead-inner {
+    padding: .8rem .75rem .9rem;
+  }
+
+  main {
+    margin: .75rem 0;
+    padding: 0 .75rem;
+    gap: .75rem;
+  }
+
+  footer {
+    padding: .8rem .75rem 1.2rem;
+  }
+
+  aside,
+  article {
+    width: 100%;
+  }
+
   h1 { font-size: 1.95rem; line-height: 1.08; }
   header p { font-size: 1rem; margin-top: .28rem; }
 
@@ -254,7 +279,6 @@ footer {
   .status { font-size: .84rem; }
   .panic-ticker {
     font-size: .82rem;
-    animation-duration: 13s;
   }
 
   .markdown { padding: .95rem .9rem; }

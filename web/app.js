@@ -12,7 +12,7 @@ const KNOWN_EPISODES = [
 ].map((name) => ({
   type: 'file',
   name,
-  download_url: `https://cdn.jsdelivr.net/gh/${owner}/${repo}@main/episodes/${name}`,
+  download_url: `https://raw.githubusercontent.com/${owner}/${repo}/main/episodes/${name}`,
 }));
 
 const episodesEl = document.getElementById('episodes');
@@ -449,19 +449,33 @@ function renderMarkdown(md) {
 }
 
 async function openEpisode(file, btn) {
-  document.querySelectorAll('.episode-btn').forEach((b) => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  currentEpisodeTitle = prettifyEpisodeName(file.name);
-  currentEpisodePath = file.name;
-  statusEl.textContent = `Loading ${currentEpisodeTitle}…`;
-  history.replaceState(null, '', `?ep=${encodeURIComponent(file.name)}`);
+  try {
+    document.querySelectorAll('.episode-btn').forEach((b) => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    currentEpisodeTitle = prettifyEpisodeName(file.name);
+    currentEpisodePath = file.name;
+    statusEl.textContent = `Loading ${currentEpisodeTitle}…`;
+    history.replaceState(null, '', `?ep=${encodeURIComponent(file.name)}`);
 
-  const bust = `${file.download_url}?t=${Date.now()}`;
-  const res = await fetch(bust, { cache: 'no-store' });
-  currentMarkdown = await res.text();
-  renderMarkdown(currentMarkdown);
+    const bust = `${file.download_url}?t=${Date.now()}`;
+    let res = await fetch(bust, { cache: 'no-store' });
 
-  statusEl.textContent = prettifyEpisodeName(file.name);
+    if (!res.ok) {
+      const rawFallback = `https://raw.githubusercontent.com/${owner}/${repo}/main/episodes/${file.name}`;
+      res = await fetch(`${rawFallback}?t=${Date.now()}`, { cache: 'no-store' });
+    }
+
+    if (!res.ok) {
+      throw new Error(`Failed to load episode (${res.status})`);
+    }
+
+    currentMarkdown = await res.text();
+    renderMarkdown(currentMarkdown);
+
+    statusEl.textContent = prettifyEpisodeName(file.name);
+  } catch (err) {
+    statusEl.textContent = `Episode load failed: ${err.message}`;
+  }
 }
 
 (async () => {

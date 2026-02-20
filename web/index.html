@@ -24,6 +24,8 @@
         <div class="top-row">
           <div class="badge">PUBLIC SERVICE TRANSCRIPTS UNIT</div>
           <div class="toolbar">
+            <button id="panic-briefing" class="theme-toggle panic-btn" aria-label="Trigger briefing panic">PANIC: BRIEFING</button>
+            <button id="panic-leak" class="theme-toggle panic-btn" aria-label="Trigger leak panic">PANIC: LEAK</button>
             <button id="foi-toggle" class="theme-toggle" aria-label="Toggle FOI redaction mode">FOI mode: Off</button>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle colour theme">Light mode</button>
           </div>
@@ -41,6 +43,7 @@
 
       <article>
         <div id="status" class="status">Loading episode list…</div>
+        <div id="panic-banner" class="panic-banner" hidden></div>
         <div id="content" class="markdown"></div>
       </article>
     </main>

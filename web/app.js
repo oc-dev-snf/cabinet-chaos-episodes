@@ -1,6 +1,20 @@
 const owner = 'oc-dev-snf';
 const repo = 'cabinet-chaos-episodes';
 
+const KNOWN_EPISODES = [
+  '2026-03-19-episode-007-the-cobra-meeting-in-space.md',
+  '2026-03-05-episode-006-ai-chatbot-policy-announcement-backfires.md',
+  '2026-02-26-episode-005-minister-pedal-power-green-transport-gaffe.md',
+  '2026-03-12-episode-004-the-briefing-that-ate-itself.md',
+  '2026-03-05-episode-003-minutes-to-midnight-briefing.md',
+  '2026-02-26-episode-002-quiet-part-loud.md',
+  '2026-02-19-episode-001-optics-volcano.md',
+].map((name) => ({
+  type: 'file',
+  name,
+  download_url: `https://cdn.jsdelivr.net/gh/${owner}/${repo}@main/episodes/${name}`,
+}));
+
 const episodesEl = document.getElementById('episodes');
 const contentEl = document.getElementById('content');
 const statusEl = document.getElementById('status');
@@ -359,11 +373,7 @@ function prettifyEpisodeName(filename) {
   return `Episode ${ep.padStart(3, '0')} — ${title} (${date})`;
 }
 
-async function fetchEpisodes() {
-  const url = `https://api.github.com/repos/${owner}/${repo}/contents/episodes`;
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-  const files = await res.json();
+function sortEpisodes(files) {
   return files
     .filter((f) => f.type === 'file' && f.name.endsWith('.md'))
     .sort((a, b) => {
@@ -377,6 +387,19 @@ async function fetchEpisodes() {
 
       return b.name.localeCompare(a.name);
     });
+}
+
+async function fetchEpisodes() {
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/episodes`;
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const files = await res.json();
+    return sortEpisodes(files);
+  } catch {
+    statusEl.textContent = 'GitHub API throttled — using fallback episode feed.';
+    return sortEpisodes(KNOWN_EPISODES);
+  }
 }
 
 // changelog removed

@@ -303,29 +303,33 @@ schedulePressToast();
 function addFoiRedactions() {
   if (!foiModeEnabled) return;
 
+  const wrapWord = (word) => `<span class="foi-redacted" title="Hover to reveal">${word}</span>`;
   const targets = contentEl.querySelectorAll('p.line .dialogue, p:not(.line), li');
+
   targets.forEach((el) => {
     if (el.querySelector('code, pre, a')) return;
 
     const text = (el.textContent || '').trim();
-    if (!text || text.length < 40) return;
+    if (!text) return;
 
     const words = text.split(/\s+/);
-    if (words.length < 10) return;
+    if (!words.length) return;
 
     if (chaosLevel >= 11) {
-      for (let j = 0; j < words.length; j++) {
-        words[j] = `<span class="foi-redacted" title="Hover to reveal">${words[j]}</span>`;
-      }
-    } else {
-      const densityDivisor = Math.max(7, 18 - chaosLevel);
-      const redactions = Math.max(1, Math.floor(words.length / densityDivisor));
-      for (let i = 0; i < redactions; i++) {
-        const start = 1 + Math.floor(Math.random() * Math.max(1, words.length - 6));
-        const spanLen = 2 + Math.floor(Math.random() * 4);
-        for (let j = start; j < Math.min(words.length, start + spanLen); j++) {
-          words[j] = `<span class="foi-redacted" title="Hover to reveal">${words[j]}</span>`;
-        }
+      el.innerHTML = words.map(wrapWord).join(' ');
+      return;
+    }
+
+    if (words.length < 8) return;
+
+    const densityDivisor = Math.max(7, 18 - chaosLevel);
+    const redactions = Math.max(1, Math.floor(words.length / densityDivisor));
+
+    for (let i = 0; i < redactions; i++) {
+      const start = Math.floor(Math.random() * Math.max(1, words.length - 4));
+      const spanLen = 2 + Math.floor(Math.random() * 4);
+      for (let j = start; j < Math.min(words.length, start + spanLen); j++) {
+        words[j] = wrapWord(words[j]);
       }
     }
 

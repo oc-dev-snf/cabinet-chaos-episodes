@@ -7,6 +7,7 @@ const statusEl = document.getElementById('status');
 const themeToggleEl = document.getElementById('theme-toggle');
 const foiToggleEl = document.getElementById('foi-toggle');
 const panicTickerEl = document.getElementById('panic-ticker');
+const changelogListEl = document.getElementById('changelog-list');
 
 let currentMarkdown = '';
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
@@ -146,6 +147,41 @@ async function fetchEpisodes() {
     });
 }
 
+async function fetchLastDeployTime() {
+  const url = `https://api.github.com/repos/${owner}/${repo}/commits/main`;
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) return null;
+  const commit = await res.json();
+  return commit?.commit?.committer?.date || null;
+}
+
+function renderChangelog(latestEpisodeName, lastDeployIso) {
+  if (!changelogListEl) return;
+
+  const formatDate = (iso) => {
+    if (!iso) return 'Unknown';
+    const d = new Date(iso);
+    return d.toLocaleString('en-GB', {
+      day: '2-digit', month: '2-digit', year: 'numeric',
+      hour: '2-digit', minute: '2-digit', timeZone: 'UTC', hour12: false,
+    }) + ' UTC';
+  };
+
+  const items = [
+    `Latest episode: ${latestEpisodeName}`,
+    `Last deploy: ${formatDate(lastDeployIso)}`,
+    'FOI redaction mode + panic ticker active',
+    'IssueOps auto-review + merge pipeline active',
+  ];
+
+  changelogListEl.innerHTML = '';
+  items.forEach((text) => {
+    const li = document.createElement('li');
+    li.textContent = text;
+    changelogListEl.appendChild(li);
+  });
+}
+
 function renderMarkdown(md) {
   const html = marked.parse(md, { mangle: false, headerIds: false });
   contentEl.innerHTML = DOMPurify.sanitize(html);
@@ -189,20 +225,37 @@ async function openEpisode(file, btn) {
 
 (async () => {
   try {
-    const episodes = await fetchEpisodes();
+    const [episodes, lastDeployIso] = await Promise.all([
+      fetchEpisodes(),
+      fetchLastDeployTime(),
+    ]);
+
     episodesEl.innerHTML = '';
 
     episodes.forEach((file, idx) => {
       const btn = document.createElement('button');
       btn.className = 'episode-btn';
       btn.textContent = prettifyEpisodeName(file.name);
+
+      if (idx === 0) {
+        const badge = document.createElement('span');
+        badge.className = 'new-badge';
+        badge.textContent = 'NEW';
+        btn.appendChild(badge);
+      }
+
       btn.addEventListener('click', () => openEpisode(file, btn));
       episodesEl.appendChild(btn);
       if (idx === 0) openEpisode(file, btn);
     });
 
+    if (episodes.length) {
+      renderChangelog(prettifyEpisodeName(episodes[0].name), lastDeployIso);
+    }
+
     if (!episodes.length) {
       statusEl.textContent = 'No episodes yet.';
+      renderChangelog('None yet', lastDeployIso);
     }
   } catch (err) {
     statusEl.textContent = `Failed to load episodes: ${err.message}`;

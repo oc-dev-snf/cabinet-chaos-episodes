@@ -113,6 +113,42 @@ aside h2 {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+.episode-btn .new-badge {
+  display: inline-block;
+  margin-left: .45rem;
+  border: 1px solid rgba(255, 87, 87, .85);
+  color: #ff8c8c;
+  background: rgba(120, 0, 0, .35);
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  padding: .05rem .3rem;
+  vertical-align: middle;
+}
+[data-theme='light'] .episode-btn .new-badge {
+  color: #9b0000;
+  background: rgba(255, 225, 225, .8);
+}
+
+.changelog {
+  margin-top: .9rem;
+  padding-top: .75rem;
+  border-top: 1px dashed var(--line);
+}
+.changelog h3 {
+  margin: 0 0 .45rem;
+  font-size: .88rem;
+  text-transform: uppercase;
+  color: var(--muted);
+  letter-spacing: .03em;
+}
+.changelog-list {
+  margin: 0;
+  padding-left: 1rem;
+  display: grid;
+  gap: .3rem;
+  font-size: .84rem;
+}
 .episode-btn:hover, .episode-btn.active {
   background: var(--panel-hover);
   border-color: var(--gov-blue);

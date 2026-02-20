@@ -30,6 +30,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   color: var(--ink);
   background: var(--paper);
+  overflow-x: hidden;
 }
 header {
   background: var(--gov-blue-dark);
@@ -106,6 +107,8 @@ aside h2 {
   padding: .62rem .65rem;
   cursor: pointer;
   font-size: .95rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 .episode-btn:hover, .episode-btn.active {
   background: var(--panel-hover);
@@ -126,16 +129,14 @@ aside h2 {
   white-space: nowrap;
 }
 .panic-ticker {
-  display: inline-block;
-  padding: .55rem 0;
-  min-width: 100%;
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: .55rem .75rem;
   font-weight: 700;
   letter-spacing: .02em;
-  animation: panicMarquee 18s linear infinite;
-}
-@keyframes panicMarquee {
-  from { transform: translateX(100%); }
-  to { transform: translateX(-100%); }
 }
 .markdown {
   padding: 1rem 1.2rem;

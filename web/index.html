@@ -25,6 +25,9 @@
           <div class="badge">PUBLIC SERVICE TRANSCRIPTS UNIT</div>
           <div class="toolbar">
             <button id="quote-roulette" class="theme-toggle" aria-label="Copy random quote">Quote roulette</button>
+            <button id="share-card" class="theme-toggle" aria-label="Copy share card text">Share card</button>
+            <label class="chaos-dial-wrap" for="chaos-dial">Chaos <span id="chaos-value">6</span></label>
+            <input id="chaos-dial" class="chaos-dial" type="range" min="0" max="11" step="1" value="6" aria-label="Chaos dial" />
             <button id="foi-toggle" class="theme-toggle" aria-label="Toggle FOI redaction mode">FOI mode: Off</button>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle colour theme">Light mode</button>
           </div>
@@ -42,6 +45,10 @@
 
       <article>
         <div id="status" class="status">Loading episode list…</div>
+        <div class="trouble-meter-wrap" aria-label="Minister in Trouble meter">
+          <div class="trouble-meter-label">MINISTER IN TROUBLE</div>
+          <div class="trouble-meter"><div id="trouble-meter-fill" class="trouble-meter-fill"></div></div>
+        </div>
         <div class="panic-ticker-wrap">
           <div id="panic-ticker" class="panic-ticker">
             <span id="panic-ticker-text" class="panic-ticker-text">PANIC TICKER INITIALISING…</span>
@@ -49,6 +56,7 @@
         </div>
         <div id="content" class="markdown"></div>
       </article>
+      <div id="press-toast" class="press-toast" hidden></div>
     </main>
 
     <footer>

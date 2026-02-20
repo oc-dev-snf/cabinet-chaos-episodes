@@ -7,10 +7,18 @@ const statusEl = document.getElementById('status');
 const themeToggleEl = document.getElementById('theme-toggle');
 const foiToggleEl = document.getElementById('foi-toggle');
 const quoteRouletteEl = document.getElementById('quote-roulette');
+const shareCardEl = document.getElementById('share-card');
+const chaosDialEl = document.getElementById('chaos-dial');
+const chaosValueEl = document.getElementById('chaos-value');
 const panicTickerEl = document.getElementById('panic-ticker');
 const panicTickerTextEl = document.getElementById('panic-ticker-text');
+const pressToastEl = document.getElementById('press-toast');
+const troubleMeterFillEl = document.getElementById('trouble-meter-fill');
 
 let currentMarkdown = '';
+let currentEpisodeTitle = '';
+let currentEpisodePath = '';
+let chaosLevel = Number.parseInt(localStorage.getItem('cabinetChaos.chaos') || '6', 10);
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
 
 function applyTheme(theme) {
@@ -37,10 +45,22 @@ function applyFoiMode(enabled) {
   }
 }
 
+chaosLevel = Number.isFinite(chaosLevel) ? Math.max(0, Math.min(11, chaosLevel)) : 6;
+if (chaosDialEl) chaosDialEl.value = String(chaosLevel);
+if (chaosValueEl) chaosValueEl.textContent = String(chaosLevel);
+
 applyFoiMode(foiModeEnabled);
 
 foiToggleEl?.addEventListener('click', () => {
   applyFoiMode(!foiModeEnabled);
+  if (currentMarkdown) renderMarkdown(currentMarkdown);
+});
+
+chaosDialEl?.addEventListener('input', () => {
+  chaosLevel = Number.parseInt(chaosDialEl.value, 10);
+  localStorage.setItem('cabinetChaos.chaos', String(chaosLevel));
+  if (chaosValueEl) chaosValueEl.textContent = String(chaosLevel);
+  rotatePanicTicker();
   if (currentMarkdown) renderMarkdown(currentMarkdown);
 });
 
@@ -82,6 +102,31 @@ async function copyRandomQuote() {
 }
 
 quoteRouletteEl?.addEventListener('click', copyRandomQuote);
+
+async function copyShareCard() {
+  if (!currentMarkdown || !currentEpisodeTitle) {
+    statusEl.textContent = 'Load an episode first.';
+    return;
+  }
+
+  const lines = getOutrageousLines(currentMarkdown);
+  const quote = (lines[Math.floor(Math.random() * lines.length)] || 'Strategic confusion ongoing.')
+    .replace(/^\*\*(.+?)\*\*:?\s*/, '$1: ')
+    .replace(/\*\*/g, '')
+    .trim();
+
+  const url = `https://oc-dev-snf.github.io/cabinet-chaos-episodes/?ep=${encodeURIComponent(currentEpisodePath)}`;
+  const text = `${currentEpisodeTitle}\n\n"${quote}"\n\n${url}`;
+
+  try {
+    await navigator.clipboard.writeText(text);
+    statusEl.textContent = 'Copied share card text.';
+  } catch {
+    statusEl.textContent = 'Clipboard blocked. Copy manually from page.';
+  }
+}
+
+shareCardEl?.addEventListener('click', copyShareCard);
 
 const panicTickerMessages = [
   'ALERT: Statement v12 superseded by v13, then accidentally published as v9.',
@@ -176,7 +221,9 @@ function rotatePanicTicker() {
 
   panicTickerTextEl.textContent = msg;
 
-  const duration = Math.min(26, Math.max(11, Math.ceil(msg.length / 6)));
+  const baseDuration = Math.min(26, Math.max(11, Math.ceil(msg.length / 6)));
+  const chaosSpeedFactor = 1 + (chaosLevel / 11) * 0.85;
+  const duration = Math.max(6, Math.round((baseDuration / chaosSpeedFactor) * 10) / 10);
   panicTickerEl.style.setProperty('--panic-duration', `${duration}s`);
 
   panicTickerTextEl.classList.remove('run');
@@ -186,6 +233,39 @@ function rotatePanicTicker() {
 
 panicTickerTextEl?.addEventListener('animationend', rotatePanicTicker);
 rotatePanicTicker();
+
+const pressToastMessages = [
+  'PRESS ROOM: Correction issued. Previous correction withdrawn.',
+  'PRESS ROOM: Line superseded by line replacing superseded line.',
+  'PRESS ROOM: Producer requests “one sentence”. Team sends twelve.',
+  'PRESS ROOM: Minister asks if “off the record” is a setting.',
+  'PRESS ROOM: Background brief has reached foreground conditions.',
+  'PRESS ROOM: Legal has entered chat with highlighted adjectives.',
+  'PRESS ROOM: Spokesperson confirms confidence in ongoing clarification.',
+  'PRESS ROOM: Statement delayed due to statement about delay.',
+  'PRESS ROOM: New phrase “strategic calm posture” causing alarm.',
+  'PRESS ROOM: Fact-check pending, vibes-check failed.'
+];
+
+function showPressToast() {
+  if (!pressToastEl) return;
+  const msg = pressToastMessages[Math.floor(Math.random() * pressToastMessages.length)];
+  pressToastEl.textContent = msg;
+  pressToastEl.hidden = false;
+  setTimeout(() => {
+    if (pressToastEl) pressToastEl.hidden = true;
+  }, 5200);
+}
+
+function schedulePressToast() {
+  const delay = 20000 + Math.floor(Math.random() * 20001);
+  setTimeout(() => {
+    showPressToast();
+    schedulePressToast();
+  }, delay);
+}
+
+schedulePressToast();
 
 function addFoiRedactions() {
   if (!foiModeEnabled) return;
@@ -200,7 +280,8 @@ function addFoiRedactions() {
     const words = text.split(/\s+/);
     if (words.length < 10) return;
 
-    const redactions = Math.max(1, Math.floor(words.length / 18));
+    const densityDivisor = Math.max(7, 18 - chaosLevel);
+    const redactions = Math.max(1, Math.floor(words.length / densityDivisor));
     for (let i = 0; i < redactions; i++) {
       const start = 1 + Math.floor(Math.random() * Math.max(1, words.length - 6));
       const spanLen = 2 + Math.floor(Math.random() * 4);
@@ -275,6 +356,21 @@ async function fetchEpisodes() {
 
 // changelog removed
 
+function updateTroubleMeter() {
+  if (!troubleMeterFillEl || !contentEl) return;
+
+  const rect = contentEl.getBoundingClientRect();
+  const viewport = window.innerHeight || 1;
+  const total = rect.height + viewport;
+  const progressed = Math.min(total, Math.max(0, viewport - rect.top));
+  const pct = Math.max(0, Math.min(100, (progressed / total) * 100));
+
+  troubleMeterFillEl.style.width = `${pct}%`;
+}
+
+window.addEventListener('scroll', updateTroubleMeter, { passive: true });
+window.addEventListener('resize', updateTroubleMeter);
+
 function renderMarkdown(md) {
   const html = marked.parse(md, { mangle: false, headerIds: false });
   contentEl.innerHTML = DOMPurify.sanitize(html);
@@ -301,12 +397,15 @@ function renderMarkdown(md) {
 
   addFoiRedactions();
   addDeniedStamps();
+  updateTroubleMeter();
 }
 
 async function openEpisode(file, btn) {
   document.querySelectorAll('.episode-btn').forEach((b) => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
-  statusEl.textContent = `Loading ${prettifyEpisodeName(file.name)}…`;
+  currentEpisodeTitle = prettifyEpisodeName(file.name);
+  currentEpisodePath = file.name;
+  statusEl.textContent = `Loading ${currentEpisodeTitle}…`;
 
   const bust = `${file.download_url}?t=${Date.now()}`;
   const res = await fetch(bust, { cache: 'no-store' });
@@ -322,6 +421,9 @@ async function openEpisode(file, btn) {
 
     episodesEl.innerHTML = '';
 
+    const requested = new URLSearchParams(window.location.search).get('ep');
+    let opened = false;
+
     episodes.forEach((file, idx) => {
       const btn = document.createElement('button');
       btn.className = 'episode-btn';
@@ -336,8 +438,20 @@ async function openEpisode(file, btn) {
 
       btn.addEventListener('click', () => openEpisode(file, btn));
       episodesEl.appendChild(btn);
-      if (idx === 0) openEpisode(file, btn);
+
+      if (!opened && requested && file.name === requested) {
+        openEpisode(file, btn);
+        opened = true;
+      } else if (!opened && !requested && idx === 0) {
+        openEpisode(file, btn);
+        opened = true;
+      }
     });
+
+    if (!opened && episodes.length) {
+      const firstBtn = episodesEl.querySelector('.episode-btn');
+      openEpisode(episodes[0], firstBtn);
+    }
 
     if (!episodes.length) {
       statusEl.textContent = 'No episodes yet.';

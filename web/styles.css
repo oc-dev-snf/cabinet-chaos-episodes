@@ -38,9 +38,9 @@ header {
   border-bottom: 6px solid var(--gov-blue);
 }
 .masthead-inner {
-  width: min(1200px, 94vw);
+  width: min(1200px, 100%);
   margin: 0 auto;
-  padding: 1rem 0 1.1rem;
+  padding: 1rem clamp(12px, 2.8vw, 24px) 1.1rem;
 }
 .top-row {
   display: flex;
@@ -79,8 +79,9 @@ h1 {
 header p { margin: .35rem 0 0; opacity: .9; }
 
 main {
-  width: min(1200px, 94vw);
+  width: min(1200px, 100%);
   margin: 1rem auto;
+  padding: 0 clamp(12px, 2.8vw, 24px);
   display: grid;
   grid-template-columns: 360px 1fr;
   gap: 1rem;
@@ -88,6 +89,8 @@ main {
 aside, article {
   background: var(--panel);
   border: 1px solid var(--line);
+  min-width: 0;
+  overflow: hidden;
 }
 aside { padding: .9rem; max-height: calc(100vh - 180px); overflow:auto; }
 aside h2 {
@@ -217,9 +220,9 @@ aside h2 {
 }
 
 footer {
-  width: min(1200px, 94vw);
+  width: min(1200px, 100%);
   margin: 0 auto;
-  padding: .8rem 0 1.4rem;
+  padding: .8rem clamp(12px, 2.8vw, 24px) 1.4rem;
   color: var(--muted);
   font-size: .88rem;
 }

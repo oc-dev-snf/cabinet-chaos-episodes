@@ -307,7 +307,7 @@ function addFoiRedactions() {
   const targets = contentEl.querySelectorAll('p.line .dialogue, p:not(.line), li');
 
   targets.forEach((el) => {
-    if (el.querySelector('code, pre, a')) return;
+    if (el.querySelector('code, pre, a, br, strong')) return;
 
     const text = (el.textContent || '').trim();
     if (!text) return;

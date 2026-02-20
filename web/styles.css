@@ -100,8 +100,8 @@ aside, article {
   background: var(--panel);
   border: 1px solid var(--line);
   min-width: 0;
-  overflow: hidden;
 }
+article { overflow: visible; }
 aside { padding: .9rem; max-height: calc(100vh - 180px); overflow:auto; }
 aside h2 {
   margin: 0 0 .8rem;

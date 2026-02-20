@@ -48,12 +48,90 @@ const panicTickerMessages = [
   'NOTICE: Leak under legal review. Screenshots already trending.',
   'ESCALATION: Cross-department comms conflict detected (severity: theatrical).',
   'FLASH: Spokesperson denies quote that was broadcast in 4K.',
-  'ACTION: War room at capacity. Ownership still technically unclear.'
+  'ACTION: War room at capacity. Ownership still technically unclear.',
+  'WARNING: Draft press line includes phrase “citizen empathy optimisation stack”.',
+  'UPDATE: Three departments claim ownership; none can find the document.',
+  'INCIDENT: Minister asked if policy is live. Team answered “conceptually”.',
+  'NOTICE: FAQ published before policy approved. FAQ now policy-adjacent.',
+  'ESCALATION: Correction to correction requires fresh correction.',
+  'ALERT: Producer asking for “one simple sentence” for 38 minutes.',
+  'NOTICE: Internal memo marked CONFIDENTIAL, then posted to social scheduler.',
+  'ACTION: Comms lead using legal pad labelled “DO NOT SAY THIS”.',
+  'INCIDENT: Hashtag now outranking actual policy title.',
+  'WARNING: Background brief leaked to foreground interview.',
+  'UPDATE: Risk register updated from amber to “spiritually red”.',
+  'ALERT: SpAd says line is “sticky”; lawyers say line is “actionable”.',
+  'NOTICE: Dashboard says sentiment neutral; comments say otherwise.',
+  'ACTION: New draft line approved pending “minor existential edits”.',
+  'INCIDENT: Auto-caption changed “pilot” to “riot”.',
+  'WARNING: Stakeholder call moved due to “unexpected national confusion”.',
+  'UPDATE: One source says pause. Another says pivot. Third says pray.',
+  'ALERT: Press office declared “controlled burn”. Fire is not controlled.',
+  'NOTICE: Minister asking if we can “just unpublish the internet”.',
+  'ESCALATION: Broadcast slot confirmed. Facts still in procurement.',
+  'ACTION: Departmental WhatsApp renamed to “War Room 17 FINAL FINAL”.',
+  'INCIDENT: Internal joke quote now in external Q&A pack.',
+  'WARNING: Reply-all event detected. Damage estimate pending.',
+  'UPDATE: Analytics calls it engagement. Treasury calls it volatility.',
+  'ALERT: Terminology harmonisation meeting entered second fiscal quarter.',
+  'NOTICE: New slogan focus-grouped at 2am by three interns and a dog.',
+  'ACTION: Ministerial aide requesting “fewer verbs, more certainty”.',
+  'INCIDENT: Policy launch deck includes slide titled “Don’t mention this slide”.',
+  'WARNING: Interim holding line became permanent doctrine by lunch.',
+  'UPDATE: Number Ten requests confidence. Department requests oxygen.',
+  'ALERT: Civilians using FOI mode as fact-checking tool.',
+  'NOTICE: Transcript now contains four conflicting versions of events.',
+  'ACTION: “No comment” accidentally sent with full comment attached.',
+  'INCIDENT: Backchannel became main channel without announcement.',
+  'WARNING: Clarification interpreted as confession in under 3 minutes.',
+  'UPDATE: PMQ prep notes include phrase “avoid orbital metaphors”.',
+  'ALERT: Printer jam now designated critical national bottleneck.',
+  'NOTICE: Official spokesperson currently in “strategic tea break”.',
+  'ACTION: Comms matrix expanded from 2x2 to 9x9 to “reflect complexity”.',
+  'INCIDENT: Emergency briefing starts with “what did we actually announce?”.',
+  'WARNING: Third-party vendor asks if this is satire. Silence follows.',
+  'UPDATE: Draft line now translated into plain English by cleaner.',
+  'ALERT: One minister, two scripts, zero agreement.',
+  'NOTICE: New action plan called “rapid calm initiative” caused panic.',
+  'ACTION: Every sentence now ends with “subject to verification”.',
+  'INCIDENT: “Off the record” interpreted as “on every record”.',
+  'WARNING: Committee chair smiling. Historical outcome: bad.',
+  'UPDATE: Stakeholder confidence reduced to decorative value.',
+  'ALERT: Broadcast producer asks, “is this definitely not performance art?”.',
+  'NOTICE: Public dashboard frozen at “situation normal” since 08:12.',
+  'ACTION: Team attempting to merge six truths into one statement.',
+  'INCIDENT: “Minor correction” now 14 pages and an annex.',
+  'WARNING: Spin saturation nearing legal threshold.',
+  'UPDATE: Emergency line approved, revoked, and approved again in one minute.',
+  'ALERT: Policy explained using weather metaphors. It is now storming.',
+  'NOTICE: Draft marked FINAL_v3_REAL_THIS_ONE.docx detected.',
+  'ACTION: Minister asking if denial can be retroactive.',
+  'INCIDENT: Press line includes accidental existentialism.',
+  'WARNING: Team morale currently powered by biscuits and spite.',
+  'UPDATE: Strategic ambiguity downgraded to tactical nonsense.',
+  'ALERT: Civil service equivalent of “we’re so back / it’s so over” observed.',
+  'NOTICE: Chief of Staff requests “less chaos, same momentum”.',
+  'ACTION: Someone said “quick win.” Timeline immediately doubled.'
+];
+
+const panicTrumpStyleQuotes = [
+  'QUOTE: “Nobody does crisis comms better than us, maybe ever.”',
+  'QUOTE: “Many people are saying this press line is tremendous, really tremendous.”',
+  'QUOTE: “We had the best briefing. People cried. Big strong producers.”',
+  'QUOTE: “Fake news says confusion. Wrong. It was a very stable rollout.”',
+  'QUOTE: “This panic ticker? Beautiful ticker. Top-tier ticker.”',
+  'QUOTE: “We inherited a total mess, now it’s the greatest mess, believe me.”',
+  'QUOTE: “I know words. I have the best words. Not these words, better words.”',
+  'QUOTE: “If it’s in all caps, that means leadership.”',
+  'QUOTE: “They said it couldn’t be done. We did it badly and quickly.”',
+  'QUOTE: “The statement was perfect. Perfect statement. Read the statement.”'
 ];
 
 function rotatePanicTicker() {
   if (!panicTickerEl) return;
-  const msg = panicTickerMessages[Math.floor(Math.random() * panicTickerMessages.length)];
+  const useTrumpStyle = Math.random() < 0.14;
+  const pool = useTrumpStyle ? panicTrumpStyleQuotes : panicTickerMessages;
+  const msg = pool[Math.floor(Math.random() * pool.length)];
   panicTickerEl.textContent = `PANIC TICKER • ${msg}`;
 }
 

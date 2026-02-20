@@ -10,8 +10,10 @@ const quoteRouletteEl = document.getElementById('quote-roulette');
 const shareCardEl = document.getElementById('share-card');
 const chaosDialEl = document.getElementById('chaos-dial');
 const chaosValueEl = document.getElementById('chaos-value');
+const ambientToggleEl = document.getElementById('ambient-toggle');
 const panicTickerEl = document.getElementById('panic-ticker');
 const panicTickerTextEl = document.getElementById('panic-ticker-text');
+const lockdownBannerEl = document.getElementById('lockdown-banner');
 const pressToastEl = document.getElementById('press-toast');
 const troubleMeterFillEl = document.getElementById('trouble-meter-fill');
 
@@ -19,6 +21,7 @@ let currentMarkdown = '';
 let currentEpisodeTitle = '';
 let currentEpisodePath = '';
 let chaosLevel = Number.parseInt(localStorage.getItem('cabinetChaos.chaos') || '6', 10);
+let ambientPanicEnabled = (localStorage.getItem('cabinetChaos.ambient') || 'off') === 'on';
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
 
 function applyTheme(theme) {
@@ -49,7 +52,17 @@ chaosLevel = Number.isFinite(chaosLevel) ? Math.max(0, Math.min(11, chaosLevel))
 if (chaosDialEl) chaosDialEl.value = String(chaosLevel);
 if (chaosValueEl) chaosValueEl.textContent = String(chaosLevel);
 
+function applyAmbientMode(enabled) {
+  ambientPanicEnabled = enabled;
+  localStorage.setItem('cabinetChaos.ambient', enabled ? 'on' : 'off');
+  document.body.classList.toggle('ambient-panic', enabled);
+  if (ambientToggleEl) ambientToggleEl.textContent = `Ambient: ${enabled ? 'On' : 'Off'}`;
+}
+
+applyAmbientMode(ambientPanicEnabled);
 applyFoiMode(foiModeEnabled);
+if (lockdownBannerEl) lockdownBannerEl.hidden = chaosLevel < 11;
+panicTickerEl?.classList.toggle('chaos11', chaosLevel >= 11);
 
 foiToggleEl?.addEventListener('click', () => {
   applyFoiMode(!foiModeEnabled);
@@ -60,8 +73,14 @@ chaosDialEl?.addEventListener('input', () => {
   chaosLevel = Number.parseInt(chaosDialEl.value, 10);
   localStorage.setItem('cabinetChaos.chaos', String(chaosLevel));
   if (chaosValueEl) chaosValueEl.textContent = String(chaosLevel);
+  if (lockdownBannerEl) lockdownBannerEl.hidden = chaosLevel < 11;
+  panicTickerEl?.classList.toggle('chaos11', chaosLevel >= 11);
   rotatePanicTicker();
   if (currentMarkdown) renderMarkdown(currentMarkdown);
+});
+
+ambientToggleEl?.addEventListener('click', () => {
+  applyAmbientMode(!ambientPanicEnabled);
 });
 
 function getOutrageousLines(md) {
@@ -222,8 +241,8 @@ function rotatePanicTicker() {
   panicTickerTextEl.textContent = msg;
 
   const baseDuration = Math.min(26, Math.max(11, Math.ceil(msg.length / 6)));
-  const chaosSpeedFactor = 1 + (chaosLevel / 11) * 0.85;
-  const duration = Math.max(6, Math.round((baseDuration / chaosSpeedFactor) * 10) / 10);
+  const chaosSpeedFactor = chaosLevel >= 11 ? 2 : (1 + (chaosLevel / 11) * 0.85);
+  const duration = Math.max(5, Math.round((baseDuration / chaosSpeedFactor) * 10) / 10);
   panicTickerEl.style.setProperty('--panic-duration', `${duration}s`);
 
   panicTickerTextEl.classList.remove('run');
@@ -412,6 +431,7 @@ async function openEpisode(file, btn) {
   currentEpisodeTitle = prettifyEpisodeName(file.name);
   currentEpisodePath = file.name;
   statusEl.textContent = `Loading ${currentEpisodeTitle}…`;
+  history.replaceState(null, '', `?ep=${encodeURIComponent(file.name)}`);
 
   const bust = `${file.download_url}?t=${Date.now()}`;
   const res = await fetch(bust, { cache: 'no-store' });
@@ -431,9 +451,28 @@ async function openEpisode(file, btn) {
     let opened = false;
 
     episodes.forEach((file, idx) => {
+      const row = document.createElement('div');
+      row.className = 'episode-item';
+
       const btn = document.createElement('button');
       btn.className = 'episode-btn';
       btn.textContent = prettifyEpisodeName(file.name);
+
+      const linkBtn = document.createElement('button');
+      linkBtn.className = 'episode-link-btn';
+      linkBtn.setAttribute('aria-label', 'Copy episode permalink');
+      linkBtn.title = 'Copy episode permalink';
+      linkBtn.textContent = '🔗';
+      linkBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const permalink = `https://oc-dev-snf.github.io/cabinet-chaos-episodes/?ep=${encodeURIComponent(file.name)}`;
+        try {
+          await navigator.clipboard.writeText(permalink);
+          statusEl.textContent = 'Copied episode permalink.';
+        } catch {
+          statusEl.textContent = 'Clipboard blocked. Copy link manually.';
+        }
+      });
 
       if (idx === 0) {
         const badge = document.createElement('span');
@@ -443,7 +482,9 @@ async function openEpisode(file, btn) {
       }
 
       btn.addEventListener('click', () => openEpisode(file, btn));
-      episodesEl.appendChild(btn);
+      row.appendChild(btn);
+      row.appendChild(linkBtn);
+      episodesEl.appendChild(row);
 
       if (!opened && requested && file.name === requested) {
         openEpisode(file, btn);

@@ -32,6 +32,14 @@ body {
   background: var(--paper);
   overflow-x: hidden;
 }
+body.ambient-panic {
+  animation: ambientShake .6s infinite;
+}
+@keyframes ambientShake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(.35px); }
+  75% { transform: translateX(-.35px); }
+}
 header {
   background: var(--gov-blue-dark);
   color: #fff;
@@ -111,6 +119,12 @@ aside h2 {
   text-transform: uppercase;
 }
 .episodes { display: grid; gap: .55rem; }
+.episode-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .4rem;
+  align-items: stretch;
+}
 .episode-btn {
   width: 100%;
   text-align: left;
@@ -122,6 +136,18 @@ aside h2 {
   font-size: .95rem;
   overflow-wrap: anywhere;
   word-break: break-word;
+}
+.episode-link-btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  width: 38px;
+  font-size: .95rem;
+}
+.episode-link-btn:hover {
+  border-color: var(--gov-blue);
+  background: var(--panel-hover);
 }
 .episode-btn .new-badge {
   display: inline-block;
@@ -149,6 +175,20 @@ aside h2 {
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--panel) 92%, #000 8%);
   font-size: .9rem;
+}
+.lockdown-banner {
+  padding: .55rem 1rem;
+  background: #8c0000;
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  border-bottom: 1px solid #ff4d4d;
+  animation: lockdownPulse .7s infinite alternate;
+}
+@keyframes lockdownPulse {
+  from { background: #780000; }
+  to { background: #a40000; }
 }
 .trouble-meter-wrap {
   position: sticky;
@@ -183,6 +223,10 @@ aside h2 {
   color: #fff;
   overflow: hidden;
   white-space: nowrap;
+}
+.panic-ticker-wrap.chaos11 {
+  background: #b00000;
+  border-bottom-color: #ff7878;
 }
 .panic-ticker {
   display: block;
@@ -355,6 +399,10 @@ footer {
   .episode-btn {
     font-size: .9rem;
     line-height: 1.32;
+  }
+  .episode-link-btn {
+    width: 34px;
+    font-size: .86rem;
   }
 
   .status { font-size: .84rem; }

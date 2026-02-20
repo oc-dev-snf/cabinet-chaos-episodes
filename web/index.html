@@ -28,6 +28,7 @@
             <button id="share-card" class="theme-toggle" aria-label="Copy share card text">Share card</button>
             <label class="chaos-dial-wrap" for="chaos-dial">Chaos <span id="chaos-value">6</span></label>
             <input id="chaos-dial" class="chaos-dial" type="range" min="0" max="11" step="1" value="6" aria-label="Chaos dial" />
+            <button id="ambient-toggle" class="theme-toggle" aria-label="Toggle ambient panic mode">Ambient: Off</button>
             <button id="foi-toggle" class="theme-toggle" aria-label="Toggle FOI redaction mode">FOI mode: Off</button>
             <button id="theme-toggle" class="theme-toggle" aria-label="Toggle colour theme">Light mode</button>
           </div>
@@ -45,6 +46,7 @@
 
       <article>
         <div id="status" class="status">Loading episode list…</div>
+        <div id="lockdown-banner" class="lockdown-banner" hidden>⚠ FULL CLASSIFICATION LOCKDOWN ⚠</div>
         <div class="trouble-meter-wrap" aria-label="Minister in Trouble meter">
           <div class="trouble-meter-label">MINISTER IN TROUBLE</div>
           <div class="trouble-meter"><div id="trouble-meter-fill" class="trouble-meter-fill"></div></div>

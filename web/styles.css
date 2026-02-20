@@ -70,12 +70,6 @@ header {
   padding: .3rem .5rem;
 }
 .theme-toggle:hover { background: rgba(255,255,255,.15); }
-.panic-btn {
-  border-color: rgba(255, 99, 99, .8);
-}
-.panic-btn:hover {
-  background: rgba(255, 80, 80, .2);
-}
 h1 {
   margin: 0;
   font-size: clamp(1.5rem, 2.5vw, 2.1rem);
@@ -124,18 +118,24 @@ aside h2 {
   background: color-mix(in srgb, var(--panel) 92%, #000 8%);
   font-size: .9rem;
 }
-.panic-banner {
-  padding: .75rem 1rem;
-  background: #7a0000;
-  color: #fff;
+.panic-ticker-wrap {
   border-bottom: 1px solid #c94b4b;
+  background: #6d0000;
+  color: #fff;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.panic-ticker {
+  display: inline-block;
+  padding: .55rem 0;
+  min-width: 100%;
   font-weight: 700;
   letter-spacing: .02em;
-  animation: panicPulse .8s infinite alternate;
+  animation: panicMarquee 18s linear infinite;
 }
-@keyframes panicPulse {
-  from { background: #6a0000; }
-  to { background: #8f0000; }
+@keyframes panicMarquee {
+  from { transform: translateX(100%); }
+  to { transform: translateX(-100%); }
 }
 .markdown {
   padding: 1rem 1.2rem;

@@ -6,9 +6,7 @@ const contentEl = document.getElementById('content');
 const statusEl = document.getElementById('status');
 const themeToggleEl = document.getElementById('theme-toggle');
 const foiToggleEl = document.getElementById('foi-toggle');
-const panicBriefingEl = document.getElementById('panic-briefing');
-const panicLeakEl = document.getElementById('panic-leak');
-const panicBannerEl = document.getElementById('panic-banner');
+const panicTickerEl = document.getElementById('panic-ticker');
 
 let currentMarkdown = '';
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
@@ -44,36 +42,23 @@ foiToggleEl?.addEventListener('click', () => {
   if (currentMarkdown) renderMarkdown(currentMarkdown);
 });
 
-function triggerPanic(mode) {
-  const messages = mode === 'briefing'
-    ? [
-        'PANIC MODE: Briefing lines conflict across 3 departments.',
-        'PANIC MODE: Minister live in 2 mins. No agreed line.',
-        'PANIC MODE: Statement v9 accidentally emailed to press.'
-      ]
-    : [
-        'PANIC MODE: Internal memo leaked. Legal reviewing screenshots.',
-        'PANIC MODE: Off-record quote now trending nationally.',
-        'PANIC MODE: Comms war room escalated to amber+'
-      ];
+const panicTickerMessages = [
+  'ALERT: Statement v12 superseded by v13, then accidentally published as v9.',
+  'URGENT: Minister due live in 90 seconds with no approved line.',
+  'NOTICE: Leak under legal review. Screenshots already trending.',
+  'ESCALATION: Cross-department comms conflict detected (severity: theatrical).',
+  'FLASH: Spokesperson denies quote that was broadcast in 4K.',
+  'ACTION: War room at capacity. Ownership still technically unclear.'
+];
 
-  const msg = messages[Math.floor(Math.random() * messages.length)];
-  if (panicBannerEl) {
-    panicBannerEl.textContent = msg;
-    panicBannerEl.hidden = false;
-    setTimeout(() => {
-      panicBannerEl.hidden = true;
-      panicBannerEl.textContent = '';
-    }, 7000);
-  }
-
-  statusEl.textContent = msg;
-  applyFoiMode(true);
-  if (currentMarkdown) renderMarkdown(currentMarkdown);
+function rotatePanicTicker() {
+  if (!panicTickerEl) return;
+  const msg = panicTickerMessages[Math.floor(Math.random() * panicTickerMessages.length)];
+  panicTickerEl.textContent = `PANIC TICKER • ${msg}`;
 }
 
-panicBriefingEl?.addEventListener('click', () => triggerPanic('briefing'));
-panicLeakEl?.addEventListener('click', () => triggerPanic('leak'));
+rotatePanicTicker();
+setInterval(rotatePanicTicker, 9000);
 
 function addFoiRedactions() {
   if (!foiModeEnabled) return;

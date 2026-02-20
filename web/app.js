@@ -6,6 +6,7 @@ const contentEl = document.getElementById('content');
 const statusEl = document.getElementById('status');
 const themeToggleEl = document.getElementById('theme-toggle');
 const foiToggleEl = document.getElementById('foi-toggle');
+const quoteRouletteEl = document.getElementById('quote-roulette');
 const panicTickerEl = document.getElementById('panic-ticker');
 const panicTickerTextEl = document.getElementById('panic-ticker-text');
 
@@ -42,6 +43,45 @@ foiToggleEl?.addEventListener('click', () => {
   applyFoiMode(!foiModeEnabled);
   if (currentMarkdown) renderMarkdown(currentMarkdown);
 });
+
+function getOutrageousLines(md) {
+  return md
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => {
+      if (!l) return false;
+      if (l.startsWith('#') || l.startsWith('---') || l.startsWith('**Episode:**') || l.startsWith('**Title:**') || l.startsWith('**Genre:**')) return false;
+      if (l === 'TODO' || l === '**END**' || l === 'END') return false;
+      return l.length > 28;
+    });
+}
+
+async function copyRandomQuote() {
+  if (!currentMarkdown) {
+    statusEl.textContent = 'Load an episode first.';
+    return;
+  }
+
+  const lines = getOutrageousLines(currentMarkdown);
+  if (!lines.length) {
+    statusEl.textContent = 'No suitable quote found.';
+    return;
+  }
+
+  const quote = lines[Math.floor(Math.random() * lines.length)]
+    .replace(/^\*\*(.+?)\*\*:?\s*/, '$1: ')
+    .replace(/\*\*/g, '')
+    .trim();
+
+  try {
+    await navigator.clipboard.writeText(quote);
+    statusEl.textContent = `Copied quote: ${quote.slice(0, 90)}${quote.length > 90 ? '…' : ''}`;
+  } catch {
+    statusEl.textContent = 'Clipboard blocked. Copy manually from transcript.';
+  }
+}
+
+quoteRouletteEl?.addEventListener('click', copyRandomQuote);
 
 const panicTickerMessages = [
   'ALERT: Statement v12 superseded by v13, then accidentally published as v9.',

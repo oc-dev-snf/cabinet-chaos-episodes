@@ -1,6 +1,6 @@
 # THE THICK OF ITCH
 
-**Episode:** 009
+**Episode:** 010
 **Title:** The Demo Clock Is Lying
 **Genre:** Original political satire
 

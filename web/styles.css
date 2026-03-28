@@ -224,6 +224,27 @@ aside h2 {
   overflow: hidden;
   white-space: nowrap;
 }
+.audio-wrap {
+  border-bottom: 1px solid var(--line);
+  padding: .65rem 1rem .75rem;
+  background: color-mix(in srgb, var(--panel) 95%, #000 5%);
+}
+.audio-label {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: .35rem;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-weight: 700;
+}
+#episode-audio {
+  width: 100%;
+}
+.audio-status {
+  margin-top: .35rem;
+  font-size: .8rem;
+  color: var(--muted);
+}
 .panic-ticker-wrap.chaos11 {
   background: #b00000;
   border-bottom-color: #ff7878;

@@ -30,6 +30,9 @@ const panicTickerTextEl = document.getElementById('panic-ticker-text');
 const lockdownBannerEl = document.getElementById('lockdown-banner');
 const pressToastEl = document.getElementById('press-toast');
 const troubleMeterFillEl = document.getElementById('trouble-meter-fill');
+const audioWrapEl = document.getElementById('audio-wrap');
+const episodeAudioEl = document.getElementById('episode-audio');
+const audioStatusEl = document.getElementById('audio-status');
 
 let currentMarkdown = '';
 let currentEpisodeTitle = '';
@@ -393,6 +396,22 @@ function sortEpisodes(files) {
     });
 }
 
+function updateEpisodeAudio(fileName) {
+  if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
+
+  const audioName = fileName.replace(/\.md$/i, '.mp3');
+  const url = `./audio/${encodeURIComponent(audioName)}`;
+
+  episodeAudioEl.src = url;
+  episodeAudioEl.load();
+  audioWrapEl.hidden = false;
+  audioStatusEl.textContent = `Audio: ${audioName}`;
+
+  episodeAudioEl.onerror = () => {
+    audioStatusEl.textContent = 'Audio not available yet for this episode.';
+  };
+}
+
 async function fetchEpisodes() {
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/episodes`;
   try {
@@ -458,6 +477,7 @@ async function openEpisode(file, btn) {
     if (btn) btn.classList.add('active');
     currentEpisodeTitle = prettifyEpisodeName(file.name);
     currentEpisodePath = file.name;
+    updateEpisodeAudio(file.name);
     statusEl.textContent = `Loading ${currentEpisodeTitle}…`;
     history.replaceState(null, '', `?ep=${encodeURIComponent(file.name)}`);
 

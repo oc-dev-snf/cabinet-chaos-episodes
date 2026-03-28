@@ -35,9 +35,17 @@ const episodeAudioEl = document.getElementById('episode-audio');
 const audioStatusEl = document.getElementById('audio-status');
 const audioGenerateEl = document.getElementById('audio-generate');
 
+const remoteTtsApiBase = (() => {
+  const fromQuery = new URLSearchParams(window.location.search).get('ttsApi');
+  if (fromQuery) return fromQuery.replace(/\/$/, '');
+  if (window.CABINET_TTS_API) return String(window.CABINET_TTS_API).replace(/\/$/, '');
+  return '';
+})();
+
 let currentMarkdown = '';
 let currentEpisodeTitle = '';
 let currentEpisodePath = '';
+let currentRemoteAudioUrl = null;
 let chaosLevel = Number.parseInt(localStorage.getItem('cabinetChaos.chaos') || '6', 10);
 let ambientPanicEnabled = (localStorage.getItem('cabinetChaos.ambient') || 'off') === 'on';
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
@@ -586,6 +594,50 @@ function speakWithWebSpeechNatural(md) {
   return true;
 }
 
+async function tryRemoteNeuralTts(md) {
+  if (!remoteTtsApiBase || !episodeAudioEl || !audioStatusEl) return false;
+
+  const segments = markdownToSpeechSegments(md).map((s) => ({
+    type: s.type,
+    speaker: s.speaker || null,
+    text: s.text,
+  }));
+
+  if (!segments.length) return false;
+
+  try {
+    audioStatusEl.textContent = 'Generating neural audio…';
+    const res = await fetch(`${remoteTtsApiBase}/v1/speak`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        episode: currentEpisodePath || 'unknown',
+        title: currentEpisodeTitle || '',
+        segments,
+        format: 'mp3',
+      }),
+    });
+
+    if (!res.ok) throw new Error(`Remote TTS HTTP ${res.status}`);
+    const blob = await res.blob();
+
+    if (currentRemoteAudioUrl) {
+      URL.revokeObjectURL(currentRemoteAudioUrl);
+      currentRemoteAudioUrl = null;
+    }
+
+    currentRemoteAudioUrl = URL.createObjectURL(blob);
+    episodeAudioEl.hidden = false;
+    episodeAudioEl.src = currentRemoteAudioUrl;
+    episodeAudioEl.load();
+    await episodeAudioEl.play();
+    audioStatusEl.textContent = 'Playing neural cast audio.';
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function generateEpisodeAudio() {
   if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
   if (!currentMarkdown) {
@@ -595,7 +647,12 @@ async function generateEpisodeAudio() {
 
   audioStatusEl.textContent = 'Generating audio…';
 
-  // Preferred path: more natural browser voices with per-line prosody.
+  // Preferred path: server-side neural cast synthesis (Piper API).
+  if (await tryRemoteNeuralTts(currentMarkdown)) {
+    return;
+  }
+
+  // Fallback path: natural browser voices with per-line prosody.
   if (speakWithWebSpeechNatural(currentMarkdown)) {
     return;
   }
@@ -642,6 +699,10 @@ function updateEpisodeAudio() {
   if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
   audioWrapEl.hidden = false;
   episodeAudioEl.hidden = true;
+  if (currentRemoteAudioUrl) {
+    URL.revokeObjectURL(currentRemoteAudioUrl);
+    currentRemoteAudioUrl = null;
+  }
   episodeAudioEl.removeAttribute('src');
   episodeAudioEl.load();
   if (currentSpeechId !== null && window.meSpeak) {

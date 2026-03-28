@@ -429,32 +429,108 @@ function markdownToSpeechText(md) {
       .replace(/^###\s+/, '')
       .replace(/\*\*/g, '')
       .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
-      .replace(/^([A-Z][A-Z\s\-']{1,40}):\s*/, '$1. ')
       .replace(/^\((.*?)\)$/, 'Scene note. $1'))
     .join('\n\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
-function speakWithWebSpeechFallback(text) {
+function markdownToSpeechSegments(md) {
+  return md
+    .split('\n')
+    .map((raw) => raw.trim())
+    .filter((line) => line && !line.startsWith('# ') && line !== '---')
+    .map((line) => line.replace(/\*\*/g, '').replace(/\[(.*?)\]\((.*?)\)/g, '$1'))
+    .map((line) => {
+      const speakerMatch = line.match(/^([A-Z][A-Z\s\-']{1,40}):\s*(.*)$/);
+      if (speakerMatch) {
+        return {
+          type: 'dialogue',
+          speaker: speakerMatch[1],
+          text: speakerMatch[2] || '',
+        };
+      }
+      const sceneMatch = line.match(/^\((.*?)\)$/);
+      if (sceneMatch) {
+        return { type: 'scene', text: sceneMatch[1] };
+      }
+      return { type: 'narration', text: line.replace(/^##\s+/, '').replace(/^###\s+/, '') };
+    })
+    .filter((seg) => seg.text && seg.text.trim());
+}
+
+function pickBestVoice() {
+  if (!('speechSynthesis' in window)) return null;
+  const voices = window.speechSynthesis.getVoices() || [];
+  if (!voices.length) return null;
+
+  const scored = voices
+    .filter((v) => /en-GB|en_GB|en-US|en_US|English/i.test(`${v.lang} ${v.name}`))
+    .map((v) => {
+      const n = `${v.name} ${v.lang}`.toLowerCase();
+      let score = 0;
+      if (n.includes('en-gb') || n.includes('en_gb') || n.includes('british') || n.includes('uk')) score += 8;
+      if (n.includes('male')) score += 4;
+      if (n.includes('natural') || n.includes('neural') || n.includes('premium') || n.includes('enhanced')) score += 3;
+      if (n.includes('google') || n.includes('microsoft')) score += 2;
+      return { v, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return (scored[0] && scored[0].v) || voices[0];
+}
+
+function speakWithWebSpeechNatural(md) {
   if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
     return false;
   }
 
-  try {
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.08;
-    utterance.pitch = 0.72;
-    utterance.onend = () => {
+  const segments = markdownToSpeechSegments(md);
+  if (!segments.length) return false;
+
+  window.speechSynthesis.cancel();
+  const voice = pickBestVoice();
+
+  let i = 0;
+  const speakNext = () => {
+    if (i >= segments.length) {
       if (audioStatusEl) audioStatusEl.textContent = 'Playback finished.';
+      return;
+    }
+
+    const seg = segments[i++];
+    const utterance = new SpeechSynthesisUtterance(seg.text);
+    if (voice) utterance.voice = voice;
+
+    if (seg.type === 'dialogue') {
+      utterance.rate = 1.03;
+      utterance.pitch = 0.82;
+    } else if (seg.type === 'scene') {
+      utterance.rate = 0.92;
+      utterance.pitch = 0.72;
+      utterance.volume = 0.92;
+    } else {
+      utterance.rate = 0.98;
+      utterance.pitch = 0.78;
+    }
+
+    utterance.onend = () => {
+      setTimeout(speakNext, seg.type === 'scene' ? 180 : 70);
     };
+    utterance.onerror = () => {
+      if (audioStatusEl) audioStatusEl.textContent = 'Audio playback error on this client voice engine.';
+    };
+
     window.speechSynthesis.speak(utterance);
-    if (audioStatusEl) audioStatusEl.textContent = 'Playing generated audio (fallback voice engine).';
-    return true;
-  } catch {
-    return false;
+  };
+
+  if (audioStatusEl) {
+    const vName = voice ? `${voice.name} (${voice.lang})` : 'system default voice';
+    audioStatusEl.textContent = `Playing natural voice narration (${vName}).`;
   }
+
+  speakNext();
+  return true;
 }
 
 async function generateEpisodeAudio() {
@@ -464,20 +540,23 @@ async function generateEpisodeAudio() {
     return;
   }
 
+  audioStatusEl.textContent = 'Generating audio…';
+
+  // Preferred path: more natural browser voices with per-line prosody.
+  if (speakWithWebSpeechNatural(currentMarkdown)) {
+    return;
+  }
+
   await initFossTts();
 
-  audioStatusEl.textContent = 'Generating audio…';
   const text = markdownToSpeechText(currentMarkdown);
-
   if (!text) {
     audioStatusEl.textContent = 'Nothing to speak for this episode.';
     return;
   }
 
   if (!ttsReady) {
-    if (!speakWithWebSpeechFallback(text)) {
-      audioStatusEl.textContent = 'Audio init failed and no fallback voice is available.';
-    }
+    audioStatusEl.textContent = 'No local voice engine available on this client.';
     return;
   }
 
@@ -490,9 +569,9 @@ async function generateEpisodeAudio() {
     currentSpeechId = window.meSpeak.speak(text, {
       voice: 'en-rp',
       variant: 'm3',
-      speed: 175,
-      pitch: 38,
-      amplitude: 115,
+      speed: 165,
+      pitch: 34,
+      amplitude: 120,
     }, (success) => {
       if (success) {
         audioStatusEl.textContent = 'Playback finished.';
@@ -500,11 +579,9 @@ async function generateEpisodeAudio() {
       currentSpeechId = null;
     });
 
-    audioStatusEl.textContent = 'Playing generated audio (FOSS).';
+    audioStatusEl.textContent = 'Playing generated audio (FOSS engine).';
   } catch (err) {
-    if (!speakWithWebSpeechFallback(text)) {
-      audioStatusEl.textContent = `Audio generation failed: ${err.message}`;
-    }
+    audioStatusEl.textContent = `Audio generation failed: ${err.message}`;
   }
 }
 

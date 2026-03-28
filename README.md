@@ -9,27 +9,13 @@ Weekly original political satire episode transcripts.
 
 ---
 
-## Episode audio (FOSS)
+## Episode audio (FOSS, on-the-fly)
 
-This repo supports fully local/FOSS audio generation for each episode using:
-- `espeak-ng` (speech synthesis)
-- `ffmpeg` (MP3 encoding)
+The site now generates episode audio in-browser on demand using the FOSS `meSpeak.js` engine.
 
-Generate all missing audio files:
-
-```bash
-python3 scripts/generate_audio.py
-```
-
-Regenerate everything:
-
-```bash
-python3 scripts/generate_audio.py --force
-```
-
-Output files are saved to `audio/*.mp3` and embedded automatically on the site per episode.
-
-> Note: The narration preset is a gruff British satire style. It is intentionally **not** an exact impersonation of any real actor/person.
+- No pre-rendered audio files are committed to the repo.
+- Open an episode and click **Generate audio** to create local playback.
+- Voice target is a gruff British satire narrator style (not an impersonation of any real actor/person).
 
 ---
 

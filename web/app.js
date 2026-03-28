@@ -459,25 +459,73 @@ function markdownToSpeechSegments(md) {
     .filter((seg) => seg.text && seg.text.trim());
 }
 
-function pickBestVoice() {
-  if (!('speechSynthesis' in window)) return null;
+const CHARACTER_VOICE_PRESETS = {
+  CALLUM: { rate: 1.0, pitch: 0.78, genderHint: 'male' },
+  TOM: { rate: 1.08, pitch: 0.9, genderHint: 'male' },
+  MARS: { rate: 1.02, pitch: 0.86, genderHint: 'neutral' },
+  ANALYST: { rate: 1.04, pitch: 0.96, genderHint: 'neutral' },
+  NARRATOR: { rate: 0.98, pitch: 0.76, genderHint: 'male' },
+  SCENE: { rate: 0.92, pitch: 0.72, genderHint: 'neutral', volume: 0.9 },
+};
+
+function scoreVoice(v, genderHint = 'neutral') {
+  const n = `${v.name} ${v.lang}`.toLowerCase();
+  let score = 0;
+  if (n.includes('en-gb') || n.includes('en_gb') || n.includes('british') || n.includes('uk')) score += 10;
+  else if (n.includes('en-us') || n.includes('en_us') || n.includes('english')) score += 5;
+
+  if (n.includes('natural') || n.includes('neural') || n.includes('premium') || n.includes('enhanced')) score += 5;
+  if (n.includes('google') || n.includes('microsoft') || n.includes('apple')) score += 2;
+
+  if (genderHint === 'male' && n.includes('male')) score += 4;
+  if (genderHint === 'female' && n.includes('female')) score += 4;
+  if (genderHint === 'neutral' && (n.includes('male') || n.includes('female'))) score += 1;
+
+  return score;
+}
+
+function getCandidateVoices() {
+  if (!('speechSynthesis' in window)) return [];
   const voices = window.speechSynthesis.getVoices() || [];
-  if (!voices.length) return null;
+  return voices.filter((v) => /en-GB|en_GB|en-US|en_US|English/i.test(`${v.lang} ${v.name}`));
+}
 
-  const scored = voices
-    .filter((v) => /en-GB|en_GB|en-US|en_US|English/i.test(`${v.lang} ${v.name}`))
-    .map((v) => {
-      const n = `${v.name} ${v.lang}`.toLowerCase();
-      let score = 0;
-      if (n.includes('en-gb') || n.includes('en_gb') || n.includes('british') || n.includes('uk')) score += 8;
-      if (n.includes('male')) score += 4;
-      if (n.includes('natural') || n.includes('neural') || n.includes('premium') || n.includes('enhanced')) score += 3;
-      if (n.includes('google') || n.includes('microsoft')) score += 2;
-      return { v, score };
-    })
-    .sort((a, b) => b.score - a.score);
+function pickDistinctVoices() {
+  const candidates = getCandidateVoices();
+  if (!candidates.length) return { bySpeaker: {}, narration: null, scene: null };
 
-  return (scored[0] && scored[0].v) || voices[0];
+  const used = new Set();
+  const pick = (genderHint = 'neutral') => {
+    const sorted = candidates
+      .map((v) => ({ v, score: scoreVoice(v, genderHint) }))
+      .sort((a, b) => b.score - a.score)
+      .map((x) => x.v);
+
+    const found = sorted.find((v) => !used.has(v.name)) || sorted[0] || null;
+    if (found) used.add(found.name);
+    return found;
+  };
+
+  const bySpeaker = {
+    CALLUM: pick('male'),
+    TOM: pick('male'),
+    MARS: pick('neutral'),
+    ANALYST: pick('neutral'),
+  };
+
+  return {
+    bySpeaker,
+    narration: pick('male') || bySpeaker.CALLUM || candidates[0],
+    scene: pick('neutral') || candidates[0],
+  };
+}
+
+function voicePresetForSegment(seg) {
+  if (seg.type === 'scene') return CHARACTER_VOICE_PRESETS.SCENE;
+  if (seg.type === 'dialogue' && seg.speaker) {
+    return CHARACTER_VOICE_PRESETS[seg.speaker] || { rate: 1.02, pitch: 0.84, genderHint: 'neutral' };
+  }
+  return CHARACTER_VOICE_PRESETS.NARRATOR;
 }
 
 function speakWithWebSpeechNatural(md) {
@@ -489,7 +537,7 @@ function speakWithWebSpeechNatural(md) {
   if (!segments.length) return false;
 
   window.speechSynthesis.cancel();
-  const voice = pickBestVoice();
+  const voices = pickDistinctVoices();
 
   let i = 0;
   const speakNext = () => {
@@ -500,22 +548,22 @@ function speakWithWebSpeechNatural(md) {
 
     const seg = segments[i++];
     const utterance = new SpeechSynthesisUtterance(seg.text);
-    if (voice) utterance.voice = voice;
+    const preset = voicePresetForSegment(seg);
 
-    if (seg.type === 'dialogue') {
-      utterance.rate = 1.03;
-      utterance.pitch = 0.82;
-    } else if (seg.type === 'scene') {
-      utterance.rate = 0.92;
-      utterance.pitch = 0.72;
-      utterance.volume = 0.92;
-    } else {
-      utterance.rate = 0.98;
-      utterance.pitch = 0.78;
+    if (seg.type === 'dialogue' && seg.speaker && voices.bySpeaker[seg.speaker]) {
+      utterance.voice = voices.bySpeaker[seg.speaker];
+    } else if (seg.type === 'scene' && voices.scene) {
+      utterance.voice = voices.scene;
+    } else if (voices.narration) {
+      utterance.voice = voices.narration;
     }
 
+    utterance.rate = preset.rate;
+    utterance.pitch = preset.pitch;
+    if (preset.volume) utterance.volume = preset.volume;
+
     utterance.onend = () => {
-      setTimeout(speakNext, seg.type === 'scene' ? 180 : 70);
+      setTimeout(speakNext, seg.type === 'scene' ? 180 : 65);
     };
     utterance.onerror = () => {
       if (audioStatusEl) audioStatusEl.textContent = 'Audio playback error on this client voice engine.';
@@ -525,8 +573,13 @@ function speakWithWebSpeechNatural(md) {
   };
 
   if (audioStatusEl) {
-    const vName = voice ? `${voice.name} (${voice.lang})` : 'system default voice';
-    audioStatusEl.textContent = `Playing natural voice narration (${vName}).`;
+    const cast = Object.entries(voices.bySpeaker)
+      .filter(([, v]) => !!v)
+      .map(([k, v]) => `${k}:${v.name}`)
+      .join(' | ');
+    audioStatusEl.textContent = cast
+      ? `Playing cast voices (${cast}).`
+      : 'Playing natural voice narration (system voices).';
   }
 
   speakNext();

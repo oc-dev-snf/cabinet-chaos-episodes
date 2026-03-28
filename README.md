@@ -9,13 +9,21 @@ Weekly original political satire episode transcripts.
 
 ---
 
-## Episode audio (FOSS, on-the-fly)
+## Episode audio (FOSS)
 
-The site now generates episode audio in-browser on demand using the FOSS `meSpeak.js` engine.
+### Default (browser local)
+The site generates episode audio in-browser on demand (no committed audio binaries).
 
-- No pre-rendered audio files are committed to the repo.
-- Open an episode and click **Generate audio** to create local playback.
-- Voice target is a gruff British satire narrator style (not an impersonation of any real actor/person).
+- Open an episode and click **Generate audio**.
+- Character separation is applied where local browser voices allow it.
+
+### High-quality mode (neural cast voices)
+For better quality, run the included Piper TTS server and pass `ttsApi` in the site URL:
+
+- `https://oc-dev-snf.github.io/cabinet-chaos-episodes/?ttsApi=https://YOUR-TTS-HOST`
+
+When configured, the frontend uses neural server audio first, then falls back to browser voices.
+See `tts-server/README.md` for setup.
 
 ---
 

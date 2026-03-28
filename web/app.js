@@ -454,13 +454,25 @@ async function generateEpisodeAudio() {
   }
 
   try {
-    const src = window.meSpeak.speak(text, {
-      voice: 'en-rp',
-      variant: 'm3',
-      speed: 175,
-      pitch: 38,
-      amplitude: 115,
-      rawdata: 'data-url',
+    const src = await new Promise((resolve, reject) => {
+      try {
+        window.meSpeak.speak(text, {
+          voice: 'en-rp',
+          variant: 'm3',
+          speed: 175,
+          pitch: 38,
+          amplitude: 115,
+          rawdata: 'data-url',
+        }, (success, _id, stream) => {
+          if (!success || !stream) {
+            reject(new Error('engine returned no audio stream'));
+            return;
+          }
+          resolve(stream);
+        });
+      } catch (err) {
+        reject(err);
+      }
     });
 
     episodeAudioEl.src = src;

@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mespeak/mespeak.min.js"></script>
   </head>
   <body>
     <header>
@@ -57,7 +58,10 @@
           </div>
         </div>
         <div id="audio-wrap" class="audio-wrap" hidden>
-          <div class="audio-label">Episode audio playback (FOSS TTS)</div>
+          <div class="audio-head">
+            <div class="audio-label">Episode audio playback (FOSS, generated on demand)</div>
+            <button id="audio-generate" class="audio-generate-btn" type="button">Generate audio</button>
+          </div>
           <audio id="episode-audio" controls preload="none"></audio>
           <div id="audio-status" class="audio-status"></div>
         </div>

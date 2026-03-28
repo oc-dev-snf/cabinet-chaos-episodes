@@ -33,6 +33,7 @@ const troubleMeterFillEl = document.getElementById('trouble-meter-fill');
 const audioWrapEl = document.getElementById('audio-wrap');
 const episodeAudioEl = document.getElementById('episode-audio');
 const audioStatusEl = document.getElementById('audio-status');
+const audioGenerateEl = document.getElementById('audio-generate');
 
 let currentMarkdown = '';
 let currentEpisodeTitle = '';
@@ -40,6 +41,8 @@ let currentEpisodePath = '';
 let chaosLevel = Number.parseInt(localStorage.getItem('cabinetChaos.chaos') || '6', 10);
 let ambientPanicEnabled = (localStorage.getItem('cabinetChaos.ambient') || 'off') === 'on';
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
+let ttsReady = false;
+let ttsInitStarted = false;
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -98,6 +101,10 @@ chaosDialEl?.addEventListener('input', () => {
 
 ambientToggleEl?.addEventListener('click', () => {
   applyAmbientMode(!ambientPanicEnabled);
+});
+
+audioGenerateEl?.addEventListener('click', () => {
+  generateEpisodeAudio();
 });
 
 function getOutrageousLines(md) {
@@ -396,20 +403,81 @@ function sortEpisodes(files) {
     });
 }
 
-function updateEpisodeAudio(fileName) {
+async function initFossTts() {
+  if (ttsReady || ttsInitStarted) return;
+  ttsInitStarted = true;
+
+  try {
+    if (!window.meSpeak) throw new Error('meSpeak library missing');
+    await window.meSpeak.loadConfig('https://cdn.jsdelivr.net/npm/mespeak/mespeak_config.json');
+    await window.meSpeak.loadVoice('https://cdn.jsdelivr.net/npm/mespeak/voices/en/en-rp.json');
+    ttsReady = true;
+    if (audioStatusEl) audioStatusEl.textContent = 'Ready. Click “Generate audio”.';
+  } catch (err) {
+    if (audioStatusEl) audioStatusEl.textContent = `Audio init failed: ${err.message}`;
+  }
+}
+
+function markdownToSpeechText(md) {
+  return md
+    .split('\n')
+    .map((raw) => raw.trim())
+    .filter((line) => line && !line.startsWith('# ') && line !== '---')
+    .map((line) => line
+      .replace(/^##\s+/, '')
+      .replace(/^###\s+/, '')
+      .replace(/\*\*/g, '')
+      .replace(/\[(.*?)\]\((.*?)\)/g, '$1')
+      .replace(/^([A-Z][A-Z\s\-']{1,40}):\s*/, '$1. ')
+      .replace(/^\((.*?)\)$/, 'Scene note. $1'))
+    .join('\n\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+async function generateEpisodeAudio() {
   if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
+  if (!currentMarkdown) {
+    audioStatusEl.textContent = 'Load an episode first.';
+    return;
+  }
 
-  const audioName = fileName.replace(/\.md$/i, '.mp3');
-  const url = `./audio/${encodeURIComponent(audioName)}`;
+  await initFossTts();
+  if (!ttsReady) return;
 
-  episodeAudioEl.src = url;
-  episodeAudioEl.load();
+  audioStatusEl.textContent = 'Generating audio…';
+  const text = markdownToSpeechText(currentMarkdown);
+
+  if (!text) {
+    audioStatusEl.textContent = 'Nothing to speak for this episode.';
+    return;
+  }
+
+  try {
+    const src = window.meSpeak.speak(text, {
+      voice: 'en-rp',
+      variant: 'm3',
+      speed: 175,
+      pitch: 38,
+      amplitude: 115,
+      rawdata: 'data-url',
+    });
+
+    episodeAudioEl.src = src;
+    episodeAudioEl.load();
+    audioStatusEl.textContent = 'Audio generated locally (FOSS). Press play.';
+  } catch (err) {
+    audioStatusEl.textContent = `Audio generation failed: ${err.message}`;
+  }
+}
+
+function updateEpisodeAudio() {
+  if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
   audioWrapEl.hidden = false;
-  audioStatusEl.textContent = `Audio: ${audioName}`;
-
-  episodeAudioEl.onerror = () => {
-    audioStatusEl.textContent = 'Audio not available yet for this episode.';
-  };
+  episodeAudioEl.removeAttribute('src');
+  episodeAudioEl.load();
+  audioStatusEl.textContent = ttsReady ? 'Ready. Click “Generate audio”.' : 'Preparing FOSS voice engine…';
+  initFossTts();
 }
 
 async function fetchEpisodes() {
@@ -477,7 +545,7 @@ async function openEpisode(file, btn) {
     if (btn) btn.classList.add('active');
     currentEpisodeTitle = prettifyEpisodeName(file.name);
     currentEpisodePath = file.name;
-    updateEpisodeAudio(file.name);
+    updateEpisodeAudio();
     statusEl.textContent = `Loading ${currentEpisodeTitle}…`;
     history.replaceState(null, '', `?ep=${encodeURIComponent(file.name)}`);
 

@@ -229,13 +229,31 @@ aside h2 {
   padding: .65rem 1rem .75rem;
   background: color-mix(in srgb, var(--panel) 95%, #000 5%);
 }
+.audio-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .35rem;
+}
 .audio-label {
   font-size: .8rem;
   color: var(--muted);
-  margin-bottom: .35rem;
   text-transform: uppercase;
   letter-spacing: .03em;
   font-weight: 700;
+}
+.audio-generate-btn {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  padding: .3rem .5rem;
+  font-size: .8rem;
+}
+.audio-generate-btn:hover {
+  border-color: var(--gov-blue);
+  background: var(--panel-hover);
 }
 #episode-audio {
   width: 100%;

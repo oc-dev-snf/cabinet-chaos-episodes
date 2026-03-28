@@ -43,6 +43,7 @@ let ambientPanicEnabled = (localStorage.getItem('cabinetChaos.ambient') || 'off'
 let foiModeEnabled = (localStorage.getItem('cabinetChaos.foiMode') || 'off') === 'on';
 let ttsReady = false;
 let ttsInitStarted = false;
+let currentSpeechId = null;
 
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
@@ -454,30 +455,25 @@ async function generateEpisodeAudio() {
   }
 
   try {
-    const src = await new Promise((resolve, reject) => {
-      try {
-        window.meSpeak.speak(text, {
-          voice: 'en-rp',
-          variant: 'm3',
-          speed: 175,
-          pitch: 38,
-          amplitude: 115,
-          rawdata: 'data-url',
-        }, (success, _id, stream) => {
-          if (!success || !stream) {
-            reject(new Error('engine returned no audio stream'));
-            return;
-          }
-          resolve(stream);
-        });
-      } catch (err) {
-        reject(err);
+    if (currentSpeechId !== null) {
+      window.meSpeak.stop(currentSpeechId);
+      currentSpeechId = null;
+    }
+
+    currentSpeechId = window.meSpeak.speak(text, {
+      voice: 'en-rp',
+      variant: 'm3',
+      speed: 175,
+      pitch: 38,
+      amplitude: 115,
+    }, (success) => {
+      if (success) {
+        audioStatusEl.textContent = 'Playback finished.';
       }
+      currentSpeechId = null;
     });
 
-    episodeAudioEl.src = src;
-    episodeAudioEl.load();
-    audioStatusEl.textContent = 'Audio generated locally (FOSS). Press play.';
+    audioStatusEl.textContent = 'Playing generated audio (FOSS).';
   } catch (err) {
     audioStatusEl.textContent = `Audio generation failed: ${err.message}`;
   }
@@ -486,8 +482,13 @@ async function generateEpisodeAudio() {
 function updateEpisodeAudio() {
   if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
   audioWrapEl.hidden = false;
+  episodeAudioEl.hidden = true;
   episodeAudioEl.removeAttribute('src');
   episodeAudioEl.load();
+  if (currentSpeechId !== null && window.meSpeak) {
+    window.meSpeak.stop(currentSpeechId);
+    currentSpeechId = null;
+  }
   audioStatusEl.textContent = ttsReady ? 'Ready. Click “Generate audio”.' : 'Preparing FOSS voice engine…';
   initFossTts();
 }

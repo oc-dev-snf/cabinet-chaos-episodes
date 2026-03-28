@@ -436,6 +436,27 @@ function markdownToSpeechText(md) {
     .trim();
 }
 
+function speakWithWebSpeechFallback(text) {
+  if (!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)) {
+    return false;
+  }
+
+  try {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.08;
+    utterance.pitch = 0.72;
+    utterance.onend = () => {
+      if (audioStatusEl) audioStatusEl.textContent = 'Playback finished.';
+    };
+    window.speechSynthesis.speak(utterance);
+    if (audioStatusEl) audioStatusEl.textContent = 'Playing generated audio (fallback voice engine).';
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function generateEpisodeAudio() {
   if (!audioWrapEl || !episodeAudioEl || !audioStatusEl) return;
   if (!currentMarkdown) {
@@ -444,13 +465,19 @@ async function generateEpisodeAudio() {
   }
 
   await initFossTts();
-  if (!ttsReady) return;
 
   audioStatusEl.textContent = 'Generating audio…';
   const text = markdownToSpeechText(currentMarkdown);
 
   if (!text) {
     audioStatusEl.textContent = 'Nothing to speak for this episode.';
+    return;
+  }
+
+  if (!ttsReady) {
+    if (!speakWithWebSpeechFallback(text)) {
+      audioStatusEl.textContent = 'Audio init failed and no fallback voice is available.';
+    }
     return;
   }
 
@@ -475,7 +502,9 @@ async function generateEpisodeAudio() {
 
     audioStatusEl.textContent = 'Playing generated audio (FOSS).';
   } catch (err) {
-    audioStatusEl.textContent = `Audio generation failed: ${err.message}`;
+    if (!speakWithWebSpeechFallback(text)) {
+      audioStatusEl.textContent = `Audio generation failed: ${err.message}`;
+    }
   }
 }
 
@@ -488,6 +517,9 @@ function updateEpisodeAudio() {
   if (currentSpeechId !== null && window.meSpeak) {
     window.meSpeak.stop(currentSpeechId);
     currentSpeechId = null;
+  }
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
   }
   audioStatusEl.textContent = ttsReady ? 'Ready. Click “Generate audio”.' : 'Preparing FOSS voice engine…';
   initFossTts();
